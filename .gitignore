@@ -1,0 +1,49 @@
+# NetBeans specific
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+build/
+*.nbm
+
+# Java specific
+*.class
+*.war
+*.ear
+target/
+out/
+
+# IDE and editor files
+.idea/
+*.iml
+.vscode/
+*.swp
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+lib/
+libs/
+dependencies/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# Maven/Gradle
+pom.xml.versionsBackup
+.gradle/
+.mvn/
+mvnw
+mvnw.cmd
+
+# Other
+*.orig
+*.rej
