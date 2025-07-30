@@ -1,1 +1,1 @@
-aqui van todos lo modelos de tablas.
+aqui van todos lo modelos de tablas
