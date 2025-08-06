@@ -2,53 +2,49 @@ package modelo;
 
 public class Usuario {
 
-    private int id;
-    private String userName;
-    private String passwordHash;;
-    private String fullName;
-    
-    public Usuario(){}
+    private int id_usuario;
+    private String nombre_usuario;
+    private String clave_usuario;
+    private String nombre_completo;
 
-    public Usuario(int id, String userName, String passwordHash, String fullName) {
-        this.id = id;
-        this.userName = userName;
-        this.passwordHash = passwordHash;
-        this.fullName = fullName;
+    public Usuario() {}
+
+    public Usuario(int id_usuario, String nombre_usuario, String clave_usuario, String nombre_completo) {
+        this.id_usuario = id_usuario;
+        this.nombre_usuario = nombre_usuario;
+        this.clave_usuario = clave_usuario;
+        this.nombre_completo = nombre_completo;
     }
 
-    public int getId() {
-        return id;
+    public int getId_usuario() {
+        return id_usuario;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setId_usuario(int id_usuario) {
+        this.id_usuario = id_usuario;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getNombre_usuario() {
+        return nombre_usuario;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setNombre_usuario(String nombre_usuario) {
+        this.nombre_usuario = nombre_usuario;
     }
 
-    public String getPasswordHash() {
-        return passwordHash;
+    public String getClave_usuario() {
+        return clave_usuario;
     }
 
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
+    public void setClave_usuario(String clave_usuario) {
+        this.clave_usuario = clave_usuario;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getNombre_completo() {
+        return nombre_completo;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setNombre_completo(String nombre_completo) {
+        this.nombre_completo = nombre_completo;
     }
-    
-    
-
-
 }
