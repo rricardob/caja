@@ -4,11 +4,10 @@ import controlador.UsuarioController;
 import javax.swing.JOptionPane;
 import modelo.Usuario;
 
-
 public class login extends javax.swing.JFrame {
 
     UsuarioController usuarioController;
-    
+
     public login() {
         initComponents();
         usuarioController = new UsuarioController();
@@ -84,16 +83,15 @@ public class login extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
-        Usuario user= usuarioController.login(txt_usuario.getText().toString(), txt_password.getText().toString());
+        Usuario user = usuarioController.login(txt_usuario.getText(), txt_password.getText());
         if (user == null) {
-            JOptionPane.showMessageDialog(null, "No existe una persona con el usuario o clave ingresada");
+            JOptionPane.showMessageDialog(null, "Datos Incorrectos!");
             return;
         }
 
         JOptionPane.showMessageDialog(null, "Bienvenido " + user.getFullName());
-        //menu.nombre = user.getNombre();
-        //menu.apellido = user.getApellido();
-        //menu.usuarioId = user.getId();
+        menu.usuario = user.getFullName();
+        menu.usuarioId = user.getId();
         menu menu = new menu();
         menu.setVisible(true);
         this.dispose();
