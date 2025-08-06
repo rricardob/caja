@@ -89,9 +89,9 @@ public class login extends javax.swing.JFrame {
             return;
         }
 
-        JOptionPane.showMessageDialog(null, "Bienvenido " + user.getFullName());
-        menu.usuario = user.getFullName();
-        menu.usuarioId = user.getId();
+        JOptionPane.showMessageDialog(null, "Bienvenido " + user.getNombre_completo());
+        menu.usuario = user.getNombre_completo();
+        menu.usuarioId = user.getId_usuario();
         menu menu = new menu();
         menu.setVisible(true);
         this.dispose();
