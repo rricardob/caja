@@ -1,5 +1,6 @@
 package vista;
 
+import controlador.CajaController;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import modelo.SessionManager;
@@ -116,7 +117,7 @@ public class menu extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        Frm_Ingreso ingreso = new Frm_Ingreso();
+        Frm_Caja ingreso = new Frm_Caja();
         ingreso.pack();
         desktop.add(ingreso);
         ingreso.setVisible(true);
@@ -239,7 +240,7 @@ public class menu extends javax.swing.JFrame {
             JMenuItem caja = new JMenuItem("Caja");
             JMenuItem ingreso = new JMenuItem("Ingresos");
             JMenuItem reposicion = new JMenuItem("Reposiciones");
-           // itemNuevaTransaccion.addActionListener(e -> abrirVentanaTransacciones());
+            caja.addActionListener(e -> abrirCaja());
             
             JMenuItem egreso = new JMenuItem("Egresos");
             //itemHistorial.addActionListener(e -> abrirHistorialTransacciones());
@@ -262,6 +263,14 @@ public class menu extends javax.swing.JFrame {
             menu_2.add(itemReporteGeneral);
             menu_bar.add(menu_2);
         }
+    }
+    
+    private void abrirCaja() {
+        Frm_Caja frm_caja = new Frm_Caja();
+        frm_caja.pack();
+        desktop.add(frm_caja);
+        frm_caja.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm_caja);
     }
     
 
