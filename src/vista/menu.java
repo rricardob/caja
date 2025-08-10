@@ -243,6 +243,7 @@ public class menu extends javax.swing.JFrame {
             caja.addActionListener(e -> abrirCaja());
             
             JMenuItem egreso = new JMenuItem("Egresos");
+            ingreso.addActionListener(e -> abrirIngreso());
             //itemHistorial.addActionListener(e -> abrirHistorialTransacciones());
             
             menu_1.add(caja);
@@ -273,6 +274,14 @@ public class menu extends javax.swing.JFrame {
         ViewUtil.centerScreen(desktop, frm_caja);
     }
     
+    private void abrirIngreso() {
+    Frm_Ingreso frm_ingreso = new Frm_Ingreso();
+    frm_ingreso.pack();
+    desktop.add(frm_ingreso);
+    frm_ingreso.setVisible(true);
+    ViewUtil.centerScreen(desktop, frm_ingreso);
+}
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JDesktopPane desktop;
