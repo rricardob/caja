@@ -12,7 +12,7 @@ import util.ConexionDB;
 
 public class UsuarioDAO {
 
-    private PermisosDAO permisosDAO = new PermisosDAO();
+    private final PermisosDAO permisosDAO = new PermisosDAO();
 
     public Usuario login(String nombre_usuario, String clave_usuario) {
         System.out.println("Usuario " + nombre_usuario + " pass " + clave_usuario);
