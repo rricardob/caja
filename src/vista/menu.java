@@ -2,26 +2,30 @@ package vista;
 
 import controlador.CajaController;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import modelo.SessionManager;
 import util.ViewUtil;
 
 public class menu extends javax.swing.JFrame {
-    
+
     public static String usuario;
     public static int usuarioId;
     private SessionManager session;
-    
+    private final CajaController cajaController;
+    private final boolean estadoCaja;
 
     public menu() {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         initComponents();
         lbl_username.setVisible(false);
-        lbl_username.setText("Usuario: "+usuario);
+        lbl_username.setText("Usuario: " + usuario);
         this.session = SessionManager.getInstance();
+        this.cajaController = new CajaController();
+        this.estadoCaja = cajaController.verificarEstadoCaja();
         configurarMenu();
     }
-
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -117,7 +121,7 @@ public class menu extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        Frm_Caja ingreso = new Frm_Caja();
+        Frm_Listado_Caja ingreso = new Frm_Listado_Caja();
         ingreso.pack();
         desktop.add(ingreso);
         ingreso.setVisible(true);
@@ -194,93 +198,142 @@ public class menu extends javax.swing.JFrame {
             }
         });
     }
-    
+
     /**
      * Configura el menú basado en los permisos del usuario logueado
      */
     private void configurarMenu() {
-        
+
         // Limpiar menú existente
         menu_bar.removeAll();
-        
+
         // Menú Archivo (siempre visible)
         menu_1.removeAll();
         menu_2.removeAll();
-        
+
         // Verificar si hay sesión activa
         if (!session.sesionActiva()) {
             menu_bar.revalidate();
             menu_bar.repaint();
             return;
         }
-        
+
         // Configurar menús basados en permisos
         configurarMenuTransacciones();
         configurarMenuReportes();
         //configurarMenuAdministracion();
-        
+
         // Mostrar información del usuario en la barra de título
-        setTitle("Sistema de Gestión - Usuario: " + session.getNombreUsuario() + 
-                " (" + session.getNombreRol() + ")");
-        
+        setTitle("Sistema de Gestión - Usuario: " + session.getNombreUsuario()
+                + " (" + session.getNombreRol() + ")");
+
         menu_bar.revalidate();
         menu_bar.repaint();
-        
+
         JMenuItem itemSalir = new JMenuItem("Salir");
         itemSalir.addActionListener(e -> System.exit(0));
         menu_1.add(itemSalir);
         menu_bar.add(menu_1);
     }
-    
+
     private void configurarMenuTransacciones() {
         if (session.tienePermiso("transacciones")) {
             menu_1.removeAll();
-            
-            
-            JMenuItem caja = new JMenuItem("Caja");
-            JMenuItem ingreso = new JMenuItem("Ingresos");
-            JMenuItem reposicion = new JMenuItem("Reposiciones");
-            caja.addActionListener(e -> abrirCaja());
-            
-            JMenuItem egreso = new JMenuItem("Egresos");
-            ingreso.addActionListener(e -> abrirIngreso());
+
+            configurarItemsMenuCaja();
+            configurarItemsMenuIngresos();
+            configurarItemsMenuEgresos();
+            configurarItemsMenuReposiciones();
+            //JMenuItem caja = new JMenuItem("Caja");
+            //JMenuItem ingreso = new JMenuItem("Ingresos");
+            //JMenuItem reposicion = new JMenuItem("Reposiciones");
+            //caja.addActionListener(e -> abrirCaja());
+
+            //JMenuItem egreso = new JMenuItem("Egresos");
             //itemHistorial.addActionListener(e -> abrirHistorialTransacciones());
-            
-            menu_1.add(caja);
-            menu_1.add(ingreso);
-            menu_1.add(reposicion);
-            menu_1.add(egreso);
+            //menu_1.add(caja);
+            //menu_1.add(ingreso);
+            //menu_1.add(reposicion);
+            //menu_1.add(egreso);
             menu_bar.add(menu_1);
         }
     }
-    
+
     private void configurarMenuReportes() {
         if (session.tienePermiso("reportes")) {
             menu_2.removeAll();
-            
+
             JMenuItem itemReporteGeneral = new JMenuItem("Reporte General");
             //itemReporteGeneral.addActionListener(e -> );
-            
+
             menu_2.add(itemReporteGeneral);
             menu_bar.add(menu_2);
         }
     }
-    
+
+    private void configurarItemsMenuCaja() {
+        JMenu caja = new JMenu("Caja");
+        JMenuItem listadoCaja = new JMenuItem("Listado de Caja");
+        JMenuItem aperturaCaja = new JMenuItem("Apertura de Caja");
+        JMenuItem cierreCaja = new JMenuItem("Cierre de Caja");
+
+        listadoCaja.addActionListener(e -> abrirCaja());
+        aperturaCaja.addActionListener(e -> abrirAperturaCaja());
+
+        caja.add(listadoCaja);
+        caja.add(aperturaCaja);
+        caja.add(cierreCaja);
+
+        menu_1.add(caja);
+    }
+
+    private void configurarItemsMenuIngresos() {
+        JMenu ingresos = new JMenu("Ingresos");
+        JMenuItem registroIngresos = new JMenuItem("Registro Ingresos");  
+        registroIngresos.addActionListener(e -> abrirIngreso());
+        ingresos.add(registroIngresos);
+        menu_1.add(ingresos);
+    }
+
+    private void configurarItemsMenuEgresos() {
+        JMenu egresos = new JMenu("Egresos");
+
+        menu_1.add(egresos);
+    }
+
+    private void configurarItemsMenuReposiciones() {
+        JMenu reposiciones = new JMenu("Reposiciones");
+
+        menu_1.add(reposiciones);
+    }
+
     private void abrirCaja() {
-        Frm_Caja frm_caja = new Frm_Caja();
+        Frm_Listado_Caja frm_caja = new Frm_Listado_Caja();
         frm_caja.pack();
         desktop.add(frm_caja);
         frm_caja.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_caja);
     }
-    
+
     private void abrirIngreso() {
-    Frm_Ingreso frm_ingreso = new Frm_Ingreso();
-    frm_ingreso.pack();
-    desktop.add(frm_ingreso);
-    frm_ingreso.setVisible(true);
-    ViewUtil.centerScreen(desktop, frm_ingreso);
-}
+        Frm_Ingreso frm_ingreso = new Frm_Ingreso();
+        frm_ingreso.pack();
+        desktop.add(frm_ingreso);
+        frm_ingreso.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm_ingreso);
+    }
+
+    private void abrirAperturaCaja() {
+        if (this.estadoCaja) {
+            JOptionPane.showMessageDialog(this, "La caja ya se encuentra aperturada!!!");
+            return;
+        }
+        Frm_Apertura_Caja apertura_Caja = new Frm_Apertura_Caja();
+        apertura_Caja.pack();
+        desktop.add(apertura_Caja);
+        apertura_Caja.setVisible(true);
+        ViewUtil.centerScreen(desktop, apertura_Caja);
+    }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
