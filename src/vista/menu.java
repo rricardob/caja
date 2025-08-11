@@ -14,7 +14,7 @@ public class menu extends javax.swing.JFrame {
     public static int usuarioId;
     private SessionManager session;
     private final CajaController cajaController;
-    private final boolean estadoCaja;
+    private boolean estadoCaja;
 
     public menu() {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -23,7 +23,6 @@ public class menu extends javax.swing.JFrame {
         lbl_username.setText("Usuario: " + usuario);
         this.session = SessionManager.getInstance();
         this.cajaController = new CajaController();
-        this.estadoCaja = cajaController.verificarEstadoCaja();
         configurarMenu();
     }
 
@@ -324,6 +323,7 @@ public class menu extends javax.swing.JFrame {
     }
 
     private void abrirAperturaCaja() {
+        this.estadoCaja = cajaController.verificarEstadoCaja();
         if (this.estadoCaja) {
             JOptionPane.showMessageDialog(this, "La caja ya se encuentra aperturada!!!");
             return;
