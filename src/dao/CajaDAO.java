@@ -4,8 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.Set;
+import java.sql.Timestamp;
 import util.ConexionDB;
 
 public class CajaDAO {
@@ -50,6 +49,28 @@ public class CajaDAO {
                     return rs.getInt("id_sesion");
                 }
             }
+        } catch (SQLException e) {
+            System.err.println("Error obtenerIdSesionActivaPorUsuario: " + e.getMessage());
+        }
+        return -1;
+    }
+
+    public int actualizarCaja(Integer usuario_id, Timestamp fecha_inicio, Timestamp fecha_fin, Double saldo_inicio, Double saldo_final, String estado) {
+        String sql = "INSERT INTO sesiones_caja\n"
+                + "(id_usuario, hora_inicio, hora_fin, saldo_inicial, saldo_final, estado)\n"
+                + "VALUES(?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, usuario_id);
+            pst.setTimestamp(2, fecha_inicio);
+            pst.setTimestamp(3, fecha_fin);
+            pst.setDouble(4, saldo_inicio);
+            pst.setDouble(5, saldo_final);
+            pst.setString(6, estado);
+
+            return pst.executeUpdate();
+
         } catch (SQLException e) {
             System.err.println("Error obtenerIdSesionActivaPorUsuario: " + e.getMessage());
         }

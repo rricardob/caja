@@ -1,10 +1,22 @@
 
 package vista;
 
+import controlador.CajaController;
+import java.sql.Timestamp;
+import javax.swing.JOptionPane;
+import javax.swing.text.AbstractDocument;
+import modelo.SessionManager;
+import util.NumberFilter;
+
 public class Frm_Apertura_Caja extends javax.swing.JInternalFrame {
+    
+    private final CajaController cajaController;
 
     public Frm_Apertura_Caja() {
         initComponents();
+        mostrarFormateadoInput();
+        this.cajaController = new CajaController();
+        
     }
 
     @SuppressWarnings("unchecked")
@@ -16,9 +28,9 @@ public class Frm_Apertura_Caja extends javax.swing.JInternalFrame {
         jLabel1 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        txt_monto_inicial = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
+        lbl_fecha_inicio = new javax.swing.JLabel();
 
         setClosable(true);
 
@@ -53,16 +65,17 @@ public class Frm_Apertura_Caja extends javax.swing.JInternalFrame {
         jLabel2.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
         jLabel2.setText("Monto Inicial S/.");
 
-        jTextField1.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
+        txt_monto_inicial.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
+        txt_monto_inicial.setMaximumSize(new java.awt.Dimension(10, 10));
 
         jLabel3.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel3.setText("Fecha");
 
-        jLabel4.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
-        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel4.setText("10/09/2025");
-        jLabel4.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
+        lbl_fecha_inicio.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
+        lbl_fecha_inicio.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lbl_fecha_inicio.setText("10/09/2025");
+        lbl_fecha_inicio.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -75,8 +88,8 @@ public class Frm_Apertura_Caja extends javax.swing.JInternalFrame {
                     .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jTextField1)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 131, Short.MAX_VALUE))
+                    .addComponent(txt_monto_inicial, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lbl_fecha_inicio, javax.swing.GroupLayout.DEFAULT_SIZE, 131, Short.MAX_VALUE))
                 .addContainerGap(14, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -85,11 +98,11 @@ public class Frm_Apertura_Caja extends javax.swing.JInternalFrame {
                 .addContainerGap(32, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(jLabel4))
+                    .addComponent(lbl_fecha_inicio))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txt_monto_inicial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(20, 20, 20))
         );
 
@@ -121,22 +134,31 @@ public class Frm_Apertura_Caja extends javax.swing.JInternalFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btn_abrir_cajaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_abrir_cajaActionPerformed
-        /*int respuesta = JOptionPane.showConfirmDialog(this, "¿Esta seguro que desea "+this.labelEstadoCaja+"?",
+        int respuesta = JOptionPane.showConfirmDialog(this, "¿Esta seguro que desea aperturar la caja?",
                 "Confirmación", JOptionPane.YES_NO_OPTION);
+        String montoSinComas = txt_monto_inicial.getText().replaceAll(",", "");
+        //System.out.println("monto "+ Double.parseDouble(montoSinComas));
         if (respuesta == JOptionPane.YES_OPTION) {
-
-        }*/
+            this.cajaController.actualizarCaja(
+                    SessionManager.getInstance().getIdUsuario(), 
+                    new Timestamp(System.currentTimeMillis()), 
+                    null, Double.parseDouble(montoSinComas), Double.parseDouble("0"), "ABIERTA");
+        }
     }//GEN-LAST:event_btn_abrir_cajaActionPerformed
 
+    private void mostrarFormateadoInput(){
+        AbstractDocument document = (AbstractDocument) txt_monto_inicial.getDocument();
+        document.setDocumentFilter(new NumberFilter(10));
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_abrir_caja;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JLabel lbl_fecha_inicio;
+    private javax.swing.JTextField txt_monto_inicial;
     // End of variables declaration//GEN-END:variables
 }
