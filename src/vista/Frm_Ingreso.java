@@ -8,7 +8,11 @@ import modelo.Cliente;
 //import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
+import modelo.Transaccion;
+import vista.dataTableModel.TransaccionTableModel;
 
 public class Frm_Ingreso extends javax.swing.JInternalFrame {
 
@@ -16,18 +20,54 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     private final IngresoController controller;
     private Cliente clienteSeleccionado;
 
+    // Nuevo: modelo de la tabla
+    private TransaccionTableModel transaccionTableModel;
+
     public Frm_Ingreso() {
         initComponents();
         this.controller = new IngresoController();
         this.setClosable(true);
         this.setTitle("Recibo de Ingresos");
-        // Opcional: mostrar fecha en lblFecha (si lo agregas en el Designer)
+        // Inicializar el table model y asignarlo
+        transaccionTableModel = new TransaccionTableModel();
+        jTable1.setModel(transaccionTableModel);
+        // Cargar datos en la tabla (fuera del EDT)
+        cargarIngresosEnTabla();
         try {
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             lblFecha.setText(LocalDate.now().format(fmt));
         } catch (Exception e) {
-            // lblFecha podría no existir todavía; ignora si no está
         }
+    }
+
+    /**
+     * Carga los ingresos desde la BDD usando IngresoController y los pone en el
+     * table model. Se ejecuta en background y actualiza la UI en el EDT.
+     */
+    private void cargarIngresosEnTabla() {
+        // Usamos SwingWorker para no bloquear la UI
+        SwingWorker<List<Transaccion>, Void> worker = new SwingWorker<List<Transaccion>, Void>() {
+            @Override
+            protected List<Transaccion> doInBackground() throws Exception {
+                try {
+                    return controller.listarIngresosPorSesionActiva();
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Error al listar ingresos: {0}", ex.toString());
+                    return java.util.Collections.emptyList();
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<Transaccion> lista = get();
+                    transaccionTableModel.load(lista);
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Error al cargar datos en la tabla: {0}", ex.toString());
+                }
+            }
+        };
+        worker.execute();
     }
 
     @SuppressWarnings("unchecked")
@@ -365,6 +405,40 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 txtDescripcion.setText("");
                 txtImporte.setText("");
                 LOGGER.log(Level.INFO, "Ingreso registrado ID: {0} clienteId: {1} importe: {2}", new Object[]{idTrans, clienteSeleccionado.getId_cliente(), importe});
+
+                // --- NUEVO: obtener la transaccion desde la BDD y añadirla al modelo ---
+                SwingWorker<Transaccion, Void> workerAdd = new SwingWorker<Transaccion, Void>() {
+                    @Override
+                    protected Transaccion doInBackground() throws Exception {
+                        try {
+                            return controller.obtenerTransaccionPorId(idTrans);
+                        } catch (Exception ex) {
+                            LOGGER.log(Level.SEVERE, "Error obtenerTransaccionPorId: {0}", ex.toString());
+                            return null;
+                        }
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            Transaccion t = get();
+                            if (t != null) {
+                                transaccionTableModel.add(t);
+                                // Opcional: scroll hacia la nueva fila
+                                int row = transaccionTableModel.getRowCount() - 1;
+                                if (row >= 0) {
+                                    jTable1.scrollRectToVisible(jTable1.getCellRect(row, 0, true));
+                                }
+                            } else {
+                                LOGGER.log(Level.WARNING, "Transaccion recuperada nula para id {0}", idTrans);
+                            }
+                        } catch (Exception ex) {
+                            LOGGER.log(Level.SEVERE, "Error al añadir transaccion al modelo: {0}", ex.toString());
+                        }
+                    }
+                };
+                workerAdd.execute();
+
             } else {
                 JOptionPane.showMessageDialog(this, "Error al registrar ingreso. Verifique que exista una sesión de caja abierta.", "Error", JOptionPane.ERROR_MESSAGE);
                 LOGGER.log(Level.SEVERE, "Error al registrar ingreso. clienteId: {0} importe: {1}", new Object[]{clienteSeleccionado != null ? clienteSeleccionado.getId_cliente() : -1, importe});

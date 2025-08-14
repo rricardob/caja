@@ -14,6 +14,11 @@ public class Transaccion {
     private String descripcion;
     private Timestamp fecha_creacion;
 
+    // Campos adicionales temporales (no persistidos) para mostrar datos del cliente en la UI
+    private transient String nombre_completo;
+    private transient String doc_identidad;
+    private transient String direccion;
+
     public Transaccion() {
     }
 
@@ -90,4 +95,30 @@ public class Transaccion {
     public void setFecha_creacion(Timestamp fecha_creacion) {
         this.fecha_creacion = fecha_creacion;
     }
+
+    // Campos Cliente (transitorios)
+    public String getNombre_completo() {
+        return nombre_completo;
+    }
+
+    public void setNombre_completo(String nombre_completo) {
+        this.nombre_completo = nombre_completo;
+    }
+
+    public String getDoc_identidad() {
+        return doc_identidad;
+    }
+
+    public void setDoc_identidad(String doc_identidad) {
+        this.doc_identidad = doc_identidad;
+    }
+
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public void setDireccion(String direccion) {
+        this.direccion = direccion;
+    }
+
 }
