@@ -17,6 +17,7 @@ public class Transaccion {
     // Campos adicionales temporales (no persistidos) para mostrar datos del cliente en la UI
     private transient String nombre_completo;
     private transient String doc_identidad;
+    private transient String ruc;
     private transient String direccion;
 
     public Transaccion() {
@@ -111,6 +112,14 @@ public class Transaccion {
 
     public void setDoc_identidad(String doc_identidad) {
         this.doc_identidad = doc_identidad;
+    }
+
+    public String getRuc() {
+        return ruc;
+    }
+
+    public void setRuc(String ruc) {
+        this.ruc = ruc;
     }
 
     public String getDireccion() {

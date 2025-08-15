@@ -131,7 +131,7 @@ public class TransaccionDAO {
     public List<Transaccion> listarIngresosPorSesion(int idSesion) {
         List<Transaccion> lista = new ArrayList<>();
         String sql = "SELECT t.id_transaccion, t.id_sesion, t.id_usuario, t.id_tipo, t.id_cliente, t.importe, t.descripcion, t.fecha_creacion, "
-                + "c.nombre_completo, c.doc_identidad, c.direccion "
+                + "c.nombre_completo, c.doc_identidad, c.direccion, c.ruc "
                 + "FROM transacciones t "
                 + "JOIN clientes c ON t.id_cliente = c.id_cliente "
                 + "WHERE t.id_sesion = ? AND t.id_tipo = ? "
@@ -159,6 +159,7 @@ public class TransaccionDAO {
                         // Campos cliente (transitorios)
                         t.setNombre_completo(rs.getString("nombre_completo"));
                         t.setDoc_identidad(rs.getString("doc_identidad"));
+                        t.setRuc(rs.getString("ruc"));
                         t.setDireccion(rs.getString("direccion"));
 
                         lista.add(t);
@@ -178,7 +179,7 @@ public class TransaccionDAO {
      */
     public Transaccion obtenerTransaccionPorId(int idTransaccion) {
         String sql = "SELECT t.id_transaccion, t.id_sesion, t.id_usuario, t.id_tipo, t.id_cliente, t.importe, t.descripcion, t.fecha_creacion, "
-                + "c.nombre_completo, c.doc_identidad, c.direccion "
+                + "c.nombre_completo, c.doc_identidad, c.direccion, c.ruc "
                 + "FROM transacciones t "
                 + "JOIN clientes c ON t.id_cliente = c.id_cliente "
                 + "WHERE t.id_transaccion = ? LIMIT 1";
@@ -200,6 +201,7 @@ public class TransaccionDAO {
                     // Campos cliente (transitorios)
                     t.setNombre_completo(rs.getString("nombre_completo"));
                     t.setDoc_identidad(rs.getString("doc_identidad"));
+                    t.setRuc(rs.getString("ruc"));
                     t.setDireccion(rs.getString("direccion"));
 
                     return t;

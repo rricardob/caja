@@ -10,7 +10,7 @@ import modelo.Transaccion;
 public class TransaccionTableModel extends AbstractTableModel {
 
     private final String[] columnNames = {
-        "Sr.(es)", "Doc.Identidad", "Dirección", "Descripción", "Importe ", "Fecha Registro"
+        "Sr.(es)", "DNI o RUC", "Dirección", "Descripción", "Importe ", "Fecha Registro"
     };
 
     private final List<Transaccion> datos = new ArrayList<>();
@@ -92,7 +92,13 @@ public class TransaccionTableModel extends AbstractTableModel {
             case 0:
                 return t.getNombre_completo();
             case 1:
-                return t.getDoc_identidad();
+                // Mostrar DNI si existe; si no, mostrar RUC; si es ninguno, cadena vacía
+                String identificador = t.getDoc_identidad();
+                if (identificador != null && !identificador.trim().isEmpty()) {
+                    return identificador;
+                }
+                String ruc = t.getRuc();
+                return (ruc != null && !ruc.trim().isEmpty()) ? ruc : "";
             case 2:
                 return t.getDireccion();
             case 3:

@@ -106,7 +106,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
 
         lblDireccion.setText("Direccion :  ");
 
-        lblDoc.setText("Doc.Identidad : ");
+        lblDoc.setText("DNI o RUC :");
 
         lblFecha.setText("FECHA : ");
 
@@ -168,9 +168,9 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                         .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(18, 18, 18)
                 .addComponent(btnBuscarCliente)
-                .addGap(50, 50, 50)
+                .addGap(68, 68, 68)
                 .addComponent(lblFecha)
-                .addGap(50, 50, 50))
+                .addGap(32, 32, 32))
         );
         panel_registro_ingresosLayout.setVerticalGroup(
             panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -214,7 +214,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 {null, null, null, null, null, null}
             },
             new String [] {
-                "Sr.(es)", "Doc.Identidad", "Dirección", "Descripción", "Importe ", "Fecha Registro"
+                "Sr.(es)", "DNI o RUC", "Dirección", "Descripción", "Importe ", "Fecha Registro"
             }
         ));
         jScrollPane1.setViewportView(jTable1);
@@ -296,7 +296,8 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                                 txtDireccion.setText(creado.getDireccion());
                                 txtSr.setEditable(false);
                                 txtDireccion.setEditable(false);
-                                txtDoc.setText(creado.getDoc_identidad());
+                                // Setear ya sea DNI o RUC 
+                                txtDoc.setText(getIdentificadorCliente(creado));
                                 LOGGER.log(Level.INFO, "Cliente creado y seteado en Frm_Ingreso: {0}", creado.getId_cliente());
                             }
                         });
@@ -353,6 +354,8 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 txtDireccion.setText(c.getDireccion());
                 txtSr.setEditable(false);
                 txtDireccion.setEditable(false);
+                // Mostrar DNI o RUC en el campo de búsqueda
+                txtDoc.setText(getIdentificadorCliente(c));
                 LOGGER.log(Level.INFO, "Cliente encontrado: {0}", c.getId_cliente());
             }
         } catch (Exception e) {
@@ -361,6 +364,23 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             JOptionPane.showMessageDialog(this, "Error al buscar cliente: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnBuscarClienteActionPerformed
+
+    /**
+     * Retorna el identificador que corresponde: doc_identidad si existe, de lo
+     * contrario ruc si existe, o cadena vacía.
+     */
+    private String getIdentificadorCliente(Cliente c) {
+        if (c == null) {
+            return "";
+        }
+        String doc = c.getDoc_identidad();
+        if (doc != null && !doc.trim().isEmpty()) {
+            return doc;
+        }
+        String ruc = c.getRuc();
+        return ruc != null ? ruc : "";
+    }
+
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
         try {
