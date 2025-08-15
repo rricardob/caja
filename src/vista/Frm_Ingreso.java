@@ -271,7 +271,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     private void btnBuscarClienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarClienteActionPerformed
         String doc = txtDoc.getText().trim();
         if (doc.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Ingrese el documento de identidad para buscar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Ingrese el DNI o RUC para buscar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
         try {

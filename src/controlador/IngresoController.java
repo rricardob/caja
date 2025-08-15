@@ -24,7 +24,7 @@ public class IngresoController {
     }
 
     public Cliente buscarClientePorDoc(String doc) {
-        return clienteDAO.buscarPorDoc(doc);
+        return clienteDAO.buscarPorIdentificador(doc);
     }
 
     /**
@@ -46,7 +46,6 @@ public class IngresoController {
         return transaccionDAO.guardarIngreso(idSesion, idUsuario, cliente.getId_cliente(), importe, descripcion);
     }
 
-    // ------------------ Métodos para la UI / tabla ------------------
     /**
      * Lista los ingresos de la sesión activa (retorna lista vacía si no hay
      * sesión o error).
