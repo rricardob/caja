@@ -8,7 +8,11 @@ import modelo.Cliente;
 //import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
+import modelo.Transaccion;
+import vista.dataTableModel.TransaccionTableModel;
 
 public class Frm_Ingreso extends javax.swing.JInternalFrame {
 
@@ -16,18 +20,54 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     private final IngresoController controller;
     private Cliente clienteSeleccionado;
 
+    // Nuevo: modelo de la tabla
+    private TransaccionTableModel transaccionTableModel;
+
     public Frm_Ingreso() {
         initComponents();
         this.controller = new IngresoController();
         this.setClosable(true);
         this.setTitle("Recibo de Ingresos");
-        // Opcional: mostrar fecha en lblFecha (si lo agregas en el Designer)
+        // Inicializar el table model y asignarlo
+        transaccionTableModel = new TransaccionTableModel();
+        jTable1.setModel(transaccionTableModel);
+        // Cargar datos en la tabla (fuera del EDT)
+        cargarIngresosEnTabla();
         try {
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             lblFecha.setText(LocalDate.now().format(fmt));
         } catch (Exception e) {
-            // lblFecha podría no existir todavía; ignora si no está
         }
+    }
+
+    /**
+     * Carga los ingresos desde la BDD usando IngresoController y los pone en el
+     * table model. Se ejecuta en background y actualiza la UI en el EDT.
+     */
+    private void cargarIngresosEnTabla() {
+        // Usamos SwingWorker para no bloquear la UI
+        SwingWorker<List<Transaccion>, Void> worker = new SwingWorker<List<Transaccion>, Void>() {
+            @Override
+            protected List<Transaccion> doInBackground() throws Exception {
+                try {
+                    return controller.listarIngresosPorSesionActiva();
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Error al listar ingresos: {0}", ex.toString());
+                    return java.util.Collections.emptyList();
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<Transaccion> lista = get();
+                    transaccionTableModel.load(lista);
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Error al cargar datos en la tabla: {0}", ex.toString());
+                }
+            }
+        };
+        worker.execute();
     }
 
     @SuppressWarnings("unchecked")
@@ -35,20 +75,26 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     private void initComponents() {
 
         jProgressBar1 = new javax.swing.JProgressBar();
+        panel_registro_ingresos = new javax.swing.JPanel();
         lblSr = new javax.swing.JLabel();
         txtSr = new javax.swing.JTextField();
-        lblFecha = new javax.swing.JLabel();
         lblDireccion = new javax.swing.JLabel();
         txtDireccion = new javax.swing.JTextField();
         lblDoc = new javax.swing.JLabel();
         txtDoc = new javax.swing.JTextField();
+        lblFecha = new javax.swing.JLabel();
         btnBuscarCliente = new javax.swing.JButton();
         lblDescripcion = new javax.swing.JLabel();
         txtDescripcion = new javax.swing.JTextField();
-        lblImporte = new javax.swing.JLabel();
-        txtImporte = new javax.swing.JTextField();
         btnGuardar = new javax.swing.JButton();
         btnCancelar = new javax.swing.JButton();
+        lblImporte = new javax.swing.JLabel();
+        txtImporte = new javax.swing.JTextField();
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+
+        panel_registro_ingresos.setBorder(javax.swing.BorderFactory.createTitledBorder("Formulario De Registro - Ingresos"));
 
         lblSr.setText("Sr.(es) : ");
 
@@ -58,11 +104,11 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             }
         });
 
-        lblFecha.setText("Fecha : ");
-
         lblDireccion.setText("Direccion :  ");
 
-        lblDoc.setText("Doc.Identidad : ");
+        lblDoc.setText("DNI o RUC :");
+
+        lblFecha.setText("FECHA : ");
 
         btnBuscarCliente.setText("Buscar Cliente");
         btnBuscarCliente.addActionListener(new java.awt.event.ActionListener() {
@@ -71,15 +117,13 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             }
         });
 
-        lblDescripcion.setText("DESCRIPCION ");
+        lblDescripcion.setText("Descripción :");
 
         txtDescripcion.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtDescripcionActionPerformed(evt);
             }
         });
-
-        lblImporte.setText("IMPORTE");
 
         btnGuardar.setText("GUARDAR");
         btnGuardar.addActionListener(new java.awt.event.ActionListener() {
@@ -95,81 +139,122 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             }
         });
 
+        lblImporte.setText("Importe :  ");
+
+        javax.swing.GroupLayout panel_registro_ingresosLayout = new javax.swing.GroupLayout(panel_registro_ingresos);
+        panel_registro_ingresos.setLayout(panel_registro_ingresosLayout);
+        panel_registro_ingresosLayout.setHorizontalGroup(
+            panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
+                        .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblDoc)
+                            .addComponent(lblSr)
+                            .addComponent(lblImporte)
+                            .addComponent(lblDireccion)
+                            .addComponent(lblDescripcion))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(txtDescripcion, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtDireccion, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtSr)
+                            .addComponent(txtDoc)
+                            .addComponent(txtImporte)))
+                    .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
+                        .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 133, Short.MAX_VALUE)
+                        .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(18, 18, 18)
+                .addComponent(btnBuscarCliente)
+                .addGap(68, 68, 68)
+                .addComponent(lblFecha)
+                .addGap(32, 32, 32))
+        );
+        panel_registro_ingresosLayout.setVerticalGroup(
+            panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblDoc)
+                    .addComponent(txtDoc, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnBuscarCliente)
+                    .addComponent(lblFecha))
+                .addGap(18, 18, 18)
+                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtSr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblSr))
+                .addGap(18, 18, 18)
+                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblDireccion)
+                    .addComponent(txtDireccion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(23, 23, 23)
+                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtDescripcion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblDescripcion))
+                .addGap(23, 23, 23)
+                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblImporte)
+                    .addComponent(txtImporte, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(17, 17, 17)
+                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
+                    .addComponent(btnCancelar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(19, 19, 19))
+        );
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Listado De Registro - Ingresos"));
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
+            },
+            new String [] {
+                "Sr.(es)", "DNI o RUC", "Dirección", "Descripción", "Importe ", "Fecha Registro"
+            }
+        ));
+        jScrollPane1.setViewportView(jTable1);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1)
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 218, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(22, 22, 22)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(lblDescripcion)
-                                .addComponent(btnBuscarCliente))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(lblSr)
-                                    .addComponent(lblDireccion))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(txtSr, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
-                                    .addComponent(txtDireccion))))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(lblDoc)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(lblImporte)
-                                        .addGap(0, 0, Short.MAX_VALUE))
-                                    .addComponent(txtDoc))
-                                .addContainerGap())
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(lblFecha)
-                                .addGap(0, 0, Short.MAX_VALUE))))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(btnCancelar))
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addComponent(txtDescripcion, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(txtImporte, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)))
-                        .addGap(32, 32, 32))))
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(panel_registro_ingresos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(37, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(34, 34, 34)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblSr)
-                    .addComponent(txtSr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblFecha))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblDireccion)
-                    .addComponent(txtDireccion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblDoc)
-                    .addComponent(txtDoc, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(btnBuscarCliente, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblDescripcion)
-                    .addComponent(lblImporte))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtImporte, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtDescripcion, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnCancelar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(39, Short.MAX_VALUE))
+                .addContainerGap()
+                .addComponent(panel_registro_ingresos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(29, 29, 29)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -186,7 +271,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     private void btnBuscarClienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarClienteActionPerformed
         String doc = txtDoc.getText().trim();
         if (doc.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Ingrese el documento de identidad para buscar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Ingrese el DNI o RUC para buscar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
         try {
@@ -211,7 +296,8 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                                 txtDireccion.setText(creado.getDireccion());
                                 txtSr.setEditable(false);
                                 txtDireccion.setEditable(false);
-                                txtDoc.setText(creado.getDoc_identidad());
+                                // Setear ya sea DNI o RUC 
+                                txtDoc.setText(getIdentificadorCliente(creado));
                                 LOGGER.log(Level.INFO, "Cliente creado y seteado en Frm_Ingreso: {0}", creado.getId_cliente());
                             }
                         });
@@ -268,6 +354,8 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 txtDireccion.setText(c.getDireccion());
                 txtSr.setEditable(false);
                 txtDireccion.setEditable(false);
+                // Mostrar DNI o RUC en el campo de búsqueda
+                txtDoc.setText(getIdentificadorCliente(c));
                 LOGGER.log(Level.INFO, "Cliente encontrado: {0}", c.getId_cliente());
             }
         } catch (Exception e) {
@@ -276,6 +364,23 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             JOptionPane.showMessageDialog(this, "Error al buscar cliente: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnBuscarClienteActionPerformed
+
+    /**
+     * Retorna el identificador que corresponde: doc_identidad si existe, de lo
+     * contrario ruc si existe, o cadena vacía.
+     */
+    private String getIdentificadorCliente(Cliente c) {
+        if (c == null) {
+            return "";
+        }
+        String doc = c.getDoc_identidad();
+        if (doc != null && !doc.trim().isEmpty()) {
+            return doc;
+        }
+        String ruc = c.getRuc();
+        return ruc != null ? ruc : "";
+    }
+
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
         try {
@@ -320,6 +425,40 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 txtDescripcion.setText("");
                 txtImporte.setText("");
                 LOGGER.log(Level.INFO, "Ingreso registrado ID: {0} clienteId: {1} importe: {2}", new Object[]{idTrans, clienteSeleccionado.getId_cliente(), importe});
+
+                // --- NUEVO: obtener la transaccion desde la BDD y añadirla al modelo ---
+                SwingWorker<Transaccion, Void> workerAdd = new SwingWorker<Transaccion, Void>() {
+                    @Override
+                    protected Transaccion doInBackground() throws Exception {
+                        try {
+                            return controller.obtenerTransaccionPorId(idTrans);
+                        } catch (Exception ex) {
+                            LOGGER.log(Level.SEVERE, "Error obtenerTransaccionPorId: {0}", ex.toString());
+                            return null;
+                        }
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            Transaccion t = get();
+                            if (t != null) {
+                                transaccionTableModel.add(t);
+                                // Opcional: scroll hacia la nueva fila
+                                int row = transaccionTableModel.getRowCount() - 1;
+                                if (row >= 0) {
+                                    jTable1.scrollRectToVisible(jTable1.getCellRect(row, 0, true));
+                                }
+                            } else {
+                                LOGGER.log(Level.WARNING, "Transaccion recuperada nula para id {0}", idTrans);
+                            }
+                        } catch (Exception ex) {
+                            LOGGER.log(Level.SEVERE, "Error al añadir transaccion al modelo: {0}", ex.toString());
+                        }
+                    }
+                };
+                workerAdd.execute();
+
             } else {
                 JOptionPane.showMessageDialog(this, "Error al registrar ingreso. Verifique que exista una sesión de caja abierta.", "Error", JOptionPane.ERROR_MESSAGE);
                 LOGGER.log(Level.SEVERE, "Error al registrar ingreso. clienteId: {0} importe: {1}", new Object[]{clienteSeleccionado != null ? clienteSeleccionado.getId_cliente() : -1, importe});
@@ -339,13 +478,17 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     private javax.swing.JButton btnBuscarCliente;
     private javax.swing.JButton btnCancelar;
     private javax.swing.JButton btnGuardar;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JProgressBar jProgressBar1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable jTable1;
     private javax.swing.JLabel lblDescripcion;
     private javax.swing.JLabel lblDireccion;
     private javax.swing.JLabel lblDoc;
     private javax.swing.JLabel lblFecha;
     private javax.swing.JLabel lblImporte;
     private javax.swing.JLabel lblSr;
+    private javax.swing.JPanel panel_registro_ingresos;
     private javax.swing.JTextField txtDescripcion;
     private javax.swing.JTextField txtDireccion;
     private javax.swing.JTextField txtDoc;

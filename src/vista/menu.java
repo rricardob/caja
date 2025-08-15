@@ -1,6 +1,7 @@
 package vista;
 
 import controlador.CajaController;
+import java.beans.PropertyVetoException;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -217,6 +218,9 @@ public class menu extends javax.swing.JFrame {
             return;
         }
 
+        // <-- AÑADE ESTA LÍNEA para que aparezca Sistema -> Clientes
+        configurarItemsMenuClientes();
+
         // Configurar menús basados en permisos
         configurarMenuTransacciones();
         configurarMenuReportes();
@@ -237,8 +241,6 @@ public class menu extends javax.swing.JFrame {
 
     private void configurarMenuTransacciones() {
         if (session.tienePermiso("transacciones")) {
-            menu_1.removeAll();
-
             configurarItemsMenuCaja();
             configurarItemsMenuIngresos();
             configurarItemsMenuEgresos();
@@ -286,9 +288,20 @@ public class menu extends javax.swing.JFrame {
         menu_1.add(caja);
     }
 
+    private void configurarItemsMenuClientes() {
+        JMenu clientes = new JMenu("Clientes");
+        JMenuItem registroClientes = new JMenuItem("Registro Clientes");
+
+        // Al hacer click abrir Frm_Cliente
+        registroClientes.addActionListener(e -> abrirCliente());
+
+        clientes.add(registroClientes);
+        menu_1.add(clientes);
+    }
+
     private void configurarItemsMenuIngresos() {
         JMenu ingresos = new JMenu("Ingresos");
-        JMenuItem registroIngresos = new JMenuItem("Registro Ingresos");  
+        JMenuItem registroIngresos = new JMenuItem("Registro Ingresos");
         registroIngresos.addActionListener(e -> abrirIngreso());
         ingresos.add(registroIngresos);
         menu_1.add(ingresos);
@@ -320,6 +333,29 @@ public class menu extends javax.swing.JFrame {
         desktop.add(frm_ingreso);
         frm_ingreso.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_ingreso);
+    }
+
+    private void abrirCliente() {
+        // buscar si ya existe una instancia abierta de Frm_Cliente
+        for (javax.swing.JInternalFrame f : desktop.getAllFrames()) {
+            if (f instanceof Frm_Cliente) {
+                try {
+                    f.setIcon(false);
+                    f.setSelected(true);
+                    f.toFront();
+                } catch (PropertyVetoException ex) {
+                    ex.getCause();
+                }
+                return;
+            }
+        }
+
+        // si no existe, la creamos
+        Frm_Cliente frm = new Frm_Cliente();
+        frm.pack();
+        desktop.add(frm);
+        frm.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm);
     }
 
     private void abrirAperturaCaja() {
