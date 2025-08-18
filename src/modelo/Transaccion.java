@@ -13,6 +13,7 @@ public class Transaccion {
     private BigDecimal importe;
     private String descripcion;
     private Timestamp fecha_creacion;
+    private int procesada_en_sesion;
 
     // Campos adicionales temporales (no persistidos) para mostrar datos del cliente en la UI
     private transient String nombre_completo;
@@ -95,6 +96,14 @@ public class Transaccion {
 
     public void setFecha_creacion(Timestamp fecha_creacion) {
         this.fecha_creacion = fecha_creacion;
+    }
+
+    public int getProcesada_en_sesion() {
+        return procesada_en_sesion;
+    }
+
+    public void setProcesada_en_sesion(int procesada_en_sesion) {
+        this.procesada_en_sesion = procesada_en_sesion;
     }
 
     // Campos Cliente (transitorios)

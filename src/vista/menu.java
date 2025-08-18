@@ -6,6 +6,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import modelo.SesionCaja;
 import modelo.SessionManager;
 import util.ViewUtil;
 
@@ -13,7 +14,7 @@ public class menu extends javax.swing.JFrame {
 
     public static String usuario;
     public static int usuarioId;
-    private SessionManager session;
+    private final SessionManager session;
     private final CajaController cajaController;
     private boolean estadoCaja;
 
@@ -25,6 +26,7 @@ public class menu extends javax.swing.JFrame {
         this.session = SessionManager.getInstance();
         this.cajaController = new CajaController();
         configurarMenu();
+        verificarSesionACtiva();
     }
 
     @SuppressWarnings("unchecked")
@@ -280,6 +282,7 @@ public class menu extends javax.swing.JFrame {
 
         listadoCaja.addActionListener(e -> abrirCaja());
         aperturaCaja.addActionListener(e -> abrirAperturaCaja());
+        cierreCaja.addActionListener(e -> abrirCierreCaja());
 
         caja.add(listadoCaja);
         caja.add(aperturaCaja);
@@ -359,7 +362,7 @@ public class menu extends javax.swing.JFrame {
     }
 
     private void abrirAperturaCaja() {
-        this.estadoCaja = cajaController.verificarEstadoCaja();
+        this.estadoCaja = cajaController.puedeAperturarSesion(session.getIdUsuario());
         if (this.estadoCaja) {
             JOptionPane.showMessageDialog(this, "La caja ya se encuentra aperturada!!!");
             return;
@@ -369,6 +372,28 @@ public class menu extends javax.swing.JFrame {
         desktop.add(apertura_Caja);
         apertura_Caja.setVisible(true);
         ViewUtil.centerScreen(desktop, apertura_Caja);
+    }
+    
+    private void abrirCierreCaja(){
+        this.estadoCaja = cajaController.puedeAperturarSesion(session.getIdUsuario());
+        if (!this.estadoCaja) {
+            JOptionPane.showMessageDialog(this, "La caja no se encuentra aperturada!!!");
+            return;
+        }
+        
+        Frm_Cierre_caja cierre_caja = new Frm_Cierre_caja();
+        cierre_caja.pack();
+        desktop.add(cierre_caja);
+        cierre_caja.setVisible(true);
+        ViewUtil.centerScreen(desktop, cierre_caja);
+    }
+    
+    private void verificarSesionACtiva(){
+        SesionCaja sesionCaja = this.cajaController.obtenerSesionCaja(SessionManager.getInstance().getIdUsuario());
+        if (SessionManager.getInstance().getIdSesionCaja() == null) {
+            SessionManager.getInstance().setIdSesionCaja(sesionCaja.getIdSesion());
+            System.out.println("Seteando ID sesion caja "+sesionCaja.getIdSesion());
+        }
     }
 
 
