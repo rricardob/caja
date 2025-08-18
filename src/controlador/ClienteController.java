@@ -37,7 +37,7 @@ public class ClienteController {
             if (dao.existsByDoc(doc)) {
                 return "El DNI ya está registrado.";
             }
-            // RUC no es obligatorio para persona - si viene, podrías validar
+
             if (c.getTelefono() != null && !c.getTelefono().isEmpty() && dao.existsByTelefono(c.getTelefono())) {
                 return "El teléfono ya está registrado.";
             }

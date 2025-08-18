@@ -156,7 +156,6 @@ public class ClienteDAO {
             return null;
         }
 
-        // Insert original (añadir telefono y ruc a la lista de campos)
         String sql = "INSERT INTO clientes (nombre_completo, direccion, doc_identidad, telefono, ruc) VALUES (?, ?, ?, ?, ?)";
         ResultSet rsKeys = null;
         try (Connection conn = ConexionDB.obtenerConexion();
