@@ -1,6 +1,6 @@
 package controlador;
 
-import dao.CajaDAO;
+import dao.SesionCajaDAO;
 import dao.ClienteDAO;
 import dao.TransaccionDAO;
 import modelo.Cliente;
@@ -12,13 +12,13 @@ import modelo.Transaccion;
 public class IngresoController {
 
     private final ClienteDAO clienteDAO;
-    private final CajaDAO cajaDAO;
+    private final SesionCajaDAO cajaDAO;
     private final TransaccionDAO transaccionDAO;
     private final SessionManager session;
 
     public IngresoController() {
         this.clienteDAO = new ClienteDAO();
-        this.cajaDAO = new CajaDAO();
+        this.cajaDAO = new SesionCajaDAO();
         this.transaccionDAO = new TransaccionDAO();
         this.session = SessionManager.getInstance();
     }
@@ -66,5 +66,5 @@ public class IngresoController {
     public Transaccion obtenerTransaccionPorId(int idTrans) {
         return transaccionDAO.obtenerTransaccionPorId(idTrans);
     }
-
+    
 }

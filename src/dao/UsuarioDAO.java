@@ -9,20 +9,18 @@ import modelo.SessionManager;
 import modelo.Usuario;
 import util.ConexionDB;
 
-
 public class UsuarioDAO {
 
     private final PermisosDAO permisosDAO = new PermisosDAO();
 
     public Usuario login(String nombre_usuario, String clave_usuario) {
-        System.out.println("Usuario " + nombre_usuario + " pass " + clave_usuario);
-        String sql = "SELECT u.id_usuario, u.nombre_usuario, u.nombre_completo, " +
-                     "r.id_rol, r.nombre AS nombre_rol, u.fecha_creacion, u.fecha_actualizacion " +
-                     "FROM usuarios u " +
-                     "INNER JOIN roles r ON u.id_rol = r.id_rol " +
-                     "WHERE u.nombre_usuario = ? AND u.clave_usuario = ?";
+        String sql = "SELECT u.id_usuario, u.nombre_usuario, u.nombre_completo, "
+                + "r.id_rol, r.nombre AS nombre_rol, u.fecha_creacion, u.fecha_actualizacion "
+                + "FROM usuarios u "
+                + "INNER JOIN roles r ON u.id_rol = r.id_rol "
+                + "WHERE u.nombre_usuario = ? AND u.clave_usuario = ?";
         try (Connection conn = ConexionDB.obtenerConexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, nombre_usuario);
             stmt.setString(2, clave_usuario);
