@@ -52,4 +52,30 @@ public class UsuarioDAO {
         }
         return null;
     }
+
+    public Usuario infoUsuario(Integer idUsuario) {
+        String sql = "select id_usuario, nombre_usuario, nombre_completo from usuarios where id_usuario = ?";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idUsuario);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int id_usuario = rs.getInt("id_usuario");
+                String nombre_usuario = rs.getString("nombre_usuario");
+                String nombre_completo = rs.getString("nombre_completo");
+
+                return new Usuario(
+                        id_usuario,
+                        nombre_usuario,
+                        "",
+                        nombre_completo
+                );
+            }
+        } catch (SQLException ex) {
+            System.err.println("Error al infoUsuario: " + ex.getMessage());
+        }
+        return null;
+    }
 }
