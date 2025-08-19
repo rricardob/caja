@@ -11,13 +11,14 @@ import util.DateUtil;
 public class Frm_Apertura_Caja extends javax.swing.JInternalFrame {
     
     private final CajaController cajaController;
+    private final SessionManager session;
 
     public Frm_Apertura_Caja() {
         initComponents();
-        //mostrarFormateadoInput();
+        this.session = SessionManager.getInstance();
         this.cajaController = new CajaController();
         this.lbl_fecha_inicio.setText(DateUtil.obtenerFechaActual());
-        this.txt_saldo.setText(this.cajaController.calcularSaldoInicialParaNuevaApertura(SessionManager.getInstance().getIdUsuario())+"");
+        this.txt_saldo.setText(this.cajaController.calcularSaldoInicialParaNuevaApertura(session.getIdUsuario())+"");
         this.txt_saldo.setEditable(Boolean.FALSE);
     }
 
@@ -156,7 +157,7 @@ public class Frm_Apertura_Caja extends javax.swing.JInternalFrame {
         String montoSinComas = txt_saldo.getText().replaceAll(",", "");
         if (respuesta == JOptionPane.YES_OPTION) {
             SesionCaja registroSesion = this.cajaController.aperturarSesion(
-                    SessionManager.getInstance().getIdUsuario(), 
+                    session.getIdUsuario(), 
                     (montoSinComas == null || "".equals(montoSinComas)) ? new BigDecimal("0") : new BigDecimal(montoSinComas));
                     JOptionPane.showMessageDialog(this, "La caja fue aperturada correctamente!", "Sistema", JOptionPane.INFORMATION_MESSAGE);
             SessionManager.getInstance().setIdSesionCaja(registroSesion.getIdSesion());
