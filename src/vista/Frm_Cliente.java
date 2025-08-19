@@ -3,11 +3,14 @@ package vista;
 import dao.ClienteDAO;
 import modelo.Cliente;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.DocumentFilter;
+import util.ui.DocumentFilters;
 
 /**
  * Frm_Cliente adaptado para creacion de cliente desde Frm_Ingreso. Usa un
@@ -45,21 +48,27 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
     }
 
     /**
-     * Configura bloqueo inicial, filtros de longitud/dígitos y estado según
-     * tipo
+     * Configuración bloqueo inicial; filtros de longitud/dígitos/símbolos y
+     * estado según tipo
      */
     private void setupFieldBehavior() {
-        // Aplica filtros de sólo dígitos y longitud máxima
-        setDigitLimit(txtDoc, 8);   // DNI: 8 dígitos
-        setDigitLimit(txtRuc, 11);  // RUC: 11 dígitos
+        // Filtros numéricos
+        DocumentFilters.attachNumeric(txtDoc, 8);    // DNI: 8 dígitos
+        DocumentFilters.attachNumeric(txtRuc, 11);   // RUC: 11 dígitos
+        DocumentFilters.attachNumeric(txtTelefono, 9); // Teléfono: 9 dígitos
 
-        // Tooltips informativos (opcionales)
+        // Filtros alfanum/símbolos para nombre y direccion
+        DocumentFilters.attachAlphaNumSymbol(txtNombre, 150);
+        DocumentFilters.attachAlphaNumSymbol(txtDireccion, 200);
+
+        // Tooltips
+        txtNombre.setToolTipText("Nombre: letras, números, espacios y - . / (3-150 caracteres)");
         txtDoc.setToolTipText("DNI (8 dígitos numéricos)");
         txtRuc.setToolTipText("RUC (11 dígitos numéricos)");
+        txtDireccion.setToolTipText("Dirección: letras, números, espacios y - . / (10-200 caracteres)");
+        txtTelefono.setToolTipText("Teléfono (9 dígitos numéricos, opcional)");
 
-        // Estado inicial: habilita según selección actual del combo
-        // Opción mínima: si el combo ya dice "Persona", habilita DNI y bloquea RUC.
-        // Si quieres ambos bloqueados hasta que el usuario elija, mira la Variante B más abajo.
+        // Estado inicial según combo
         updateTipoFields();
     }
 
@@ -146,6 +155,85 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
                 char c = in.charAt(i);
                 if (c >= '0' && c <= '9') {
                     sb.append(c);
+                }
+            }
+            return sb.toString();
+        }
+    }
+
+    /**
+     * Aplica un filtro que permite letras (Unicode), dígitos, espacios y los
+     * símbolos - . /, y limita la longitud máxima.
+     */
+    private void setTextFilter(JTextField field, int maxLen) {
+        DocumentFilter filter = new AlphaNumSymbolFilter(maxLen);
+        ((AbstractDocument) field.getDocument()).setDocumentFilter(filter);
+        // tooltip informativo
+        field.setToolTipText("Permitido: letras, números, espacios, y - . / (máx " + maxLen + " caracteres)");
+    }
+
+    /**
+     * DocumentFilter para nombre/dirección
+     */
+    private static class AlphaNumSymbolFilter extends DocumentFilter {
+
+        private final int maxLen;
+        // permite letras Unicode, números, espacio, guion, punto, barra diagonal
+        private static final Pattern ALLOWED = Pattern.compile("[\\p{L}0-9\\.\\-/ ]+");
+
+        AlphaNumSymbolFilter(int maxLen) {
+            this.maxLen = maxLen;
+        }
+
+        @Override
+        public void insertString(DocumentFilter.FilterBypass fb, int offset, String string, javax.swing.text.AttributeSet attr)
+                throws javax.swing.text.BadLocationException {
+            if (string == null) {
+                return;
+            }
+            String filtered = filterAllowed(string);
+            if (filtered.isEmpty()) {
+                return;
+            }
+            if (fb.getDocument().getLength() + filtered.length() <= maxLen) {
+                super.insertString(fb, offset, filtered, attr);
+            }
+        }
+
+        @Override
+        public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, javax.swing.text.AttributeSet attrs)
+                throws javax.swing.text.BadLocationException {
+            if (text == null) {
+                super.replace(fb, offset, length, text, attrs);
+                return;
+            }
+            if (text.isEmpty()) {
+                super.replace(fb, offset, length, text, attrs);
+                return;
+            }
+            String filtered = filterAllowed(text);
+            if (filtered.isEmpty()) {
+                return;
+            }
+            int curLen = fb.getDocument().getLength();
+            int newLen = curLen - length + filtered.length();
+            if (newLen <= maxLen) {
+                super.replace(fb, offset, length, filtered, attrs);
+            }
+        }
+
+        @Override
+        public void remove(DocumentFilter.FilterBypass fb, int offset, int length)
+                throws javax.swing.text.BadLocationException {
+            super.remove(fb, offset, length);
+        }
+
+        private String filterAllowed(String in) {
+            StringBuilder sb = new StringBuilder(in.length());
+            for (int i = 0; i < in.length(); i++) {
+                String ch = in.substring(i, i + 1);
+                if (ALLOWED.matcher(ch).matches()) {
+                    sb.append(ch);
                 }
             }
             return sb.toString();
@@ -296,11 +384,13 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
         String tipo = (String) cbTipo.getSelectedItem();
         boolean persona = "Persona".equalsIgnoreCase(tipo);
 
+        // Persona -> habilita DNI, bloquea RUC
         setEditableAndEnabled(txtDoc, persona);
         if (!persona) {
             txtDoc.setText("");
         }
 
+        // Empresa -> habilita RUC, bloquea DNI
         setEditableAndEnabled(txtRuc, !persona);
         if (persona) {
             txtRuc.setText("");
@@ -308,8 +398,14 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
     }
 
     private void onAceptar() {
-
         String tipo = (String) cbTipo.getSelectedItem(); // "Persona" o "Empresa"
+        // Aseguramos que el campo no utilizado quede vacío
+        if ("Persona".equalsIgnoreCase(tipo)) {
+            txtRuc.setText("");
+        } else {
+            txtDoc.setText("");
+        }
+
         String nombre = txtNombre.getText().trim();
         String direccion = txtDireccion.getText().trim();
         String doc = txtDoc.getText().trim();
@@ -330,17 +426,22 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
                 JOptionPane.showMessageDialog(this, "Cliente creado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 // Notificar callback
                 if (onClienteCreated != null) {
-                    onClienteCreated.accept(creado);
+                    try {
+                        onClienteCreated.accept(creado);
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.WARNING, "Callback fallo: {0}", ex.getMessage());
+                    }
                 }
                 this.dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "No se pudo crear cliente.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (IllegalArgumentException ex) {
-            // Mensaje claro de validación desde clienteController.validarCliente
+            // Mensaje claro de validación desde ClienteValidator (propagado por controller)
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al crear cliente: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            LOGGER.log(Level.SEVERE, "Excepción onAceptar: {0}", ex.toString());
         }
     }
 
