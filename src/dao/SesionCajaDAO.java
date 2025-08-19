@@ -1,6 +1,7 @@
 package dao;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -215,28 +216,46 @@ public class SesionCajaDAO {
      * Obtener todas las sesiones de un día (historial)
      *
      * @param idUsuario
-     * @param fecha
+     * @param fechaInicio
+     * @param fechaFin
+     *
      * @return boolean
      */
-    public List<SesionCaja> obtenerSesionesPorDia(Integer idUsuario, String fecha) {
-        String sql = "SELECT * FROM sesiones_caja "
-                + "WHERE id_usuario = ? AND DATE(hora_inicio) = ? "
-                + "ORDER BY numero_sesion_dia";
+    public List<SesionCaja> obtenerSesiones(Integer idUsuario, Date fechaInicio, Date fechaFin) {
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM sesiones_caja WHERE id_usuario = ?");
+
+        if (fechaInicio != null) {
+            sqlBuilder.append(" AND DATE(hora_inicio) >= ?");
+        }
+
+        if (fechaFin != null) {
+            sqlBuilder.append(" AND DATE(hora_inicio) <= ?");
+        }
+
+        sqlBuilder.append(" ORDER BY numero_sesion_dia");
 
         List<SesionCaja> sesiones = new ArrayList<>();
 
         try (Connection conn = ConexionDB.obtenerConexion();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sqlBuilder.toString())) {
 
-            stmt.setLong(1, idUsuario);
-            stmt.setString(2, fecha);
+            int paramIndex = 1;
+            stmt.setLong(paramIndex++, idUsuario);
+
+            if (fechaInicio != null) {
+                stmt.setDate(paramIndex++, fechaInicio);
+            }
+
+            if (fechaFin != null) {
+                stmt.setDate(paramIndex++, fechaFin);
+            }
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 sesiones.add(mapearResultSet(rs));
             }
         } catch (SQLException ex) {
-            System.err.println("Error al obtenerSesionesPorDia: " + ex.getMessage());
+            System.err.println("Error al obtenerSesiones: " + ex.getMessage());
         }
 
         return sesiones;
@@ -266,8 +285,8 @@ public class SesionCajaDAO {
 
         return null;
     }
-    
-     /**
+
+    /**
      * Obtener una sesión específica por ID de usuario
      *
      * @param idUsuario

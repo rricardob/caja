@@ -3,6 +3,7 @@ package controlador;
 import dao.SesionCajaDAO;
 import dao.TransaccionDAO;
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -120,8 +121,8 @@ public class CajaController {
         return sesionCajaDAO.existeSesionAbiertaV2(idUsuario, fechaHoy);
     }
 
-    public List<SesionCaja> obtenerHistorialDelDia(Integer idUsuario, String fecha) {
-        return sesionCajaDAO.obtenerSesionesPorDia(idUsuario, fecha);
+    public List<SesionCaja> obtenerHistorial(Integer idUsuario, Date fechaInicio, Date fechaFin) {
+        return sesionCajaDAO.obtenerSesiones(idUsuario, fechaInicio, fechaFin);
     }
 
     public BigDecimal calcularSaldoFinalAutomatico(Integer idSesion) {
