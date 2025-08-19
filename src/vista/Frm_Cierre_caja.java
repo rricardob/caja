@@ -175,11 +175,8 @@ public class Frm_Cierre_caja extends javax.swing.JInternalFrame {
     private void btn_cerrar_cajaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_cerrar_cajaActionPerformed
         int respuesta = JOptionPane.showConfirmDialog(this, "¿Esta seguro que desea cerrar la caja?",
                 "Confirmación", JOptionPane.YES_NO_OPTION);
-        //String montoSinComas = txt_monto_final.getText().replaceAll(",", "");
         if (respuesta == JOptionPane.YES_OPTION) {
-            this.cajaController.cerrarSesion(SessionManager.getInstance().getIdSesionCaja()); 
-                    //(montoSinComas == null || "".equals(montoSinComas)) ? new BigDecimal("0") : new BigDecimal(montoSinComas));
-                    //totalTransaccionesIngreso.subtract(totalTransaccionesEgreso));
+            this.cajaController.cerrarSesion(session.getIdSesionCaja()); 
                     JOptionPane.showMessageDialog(this, "La caja fue cerrada correctamente!", "Sistema", JOptionPane.INFORMATION_MESSAGE);
                     this.dispose();
         }

@@ -373,27 +373,32 @@ public class menu extends javax.swing.JFrame {
         apertura_Caja.setVisible(true);
         ViewUtil.centerScreen(desktop, apertura_Caja);
     }
-    
-    private void abrirCierreCaja(){
+
+    private void abrirCierreCaja() {
         this.estadoCaja = cajaController.puedeAperturarSesion(session.getIdUsuario());
         if (!this.estadoCaja) {
             JOptionPane.showMessageDialog(this, "La caja no se encuentra aperturada!!!");
             return;
         }
-        
+
         Frm_Cierre_caja cierre_caja = new Frm_Cierre_caja();
         cierre_caja.pack();
         desktop.add(cierre_caja);
         cierre_caja.setVisible(true);
         ViewUtil.centerScreen(desktop, cierre_caja);
     }
-    
-    private void verificarSesionACtiva(){
-        SesionCaja sesionCaja = this.cajaController.obtenerSesionCaja(SessionManager.getInstance().getIdUsuario());
-        if (SessionManager.getInstance().getIdSesionCaja() == null) {
-            SessionManager.getInstance().setIdSesionCaja(sesionCaja.getIdSesion());
-            System.out.println("Seteando ID sesion caja "+sesionCaja.getIdSesion());
+
+    private void verificarSesionACtiva() {
+        SesionCaja sesionCaja = this.cajaController.obtenerSesionActivaActual(session.getIdUsuario());
+        if (sesionCaja == null) {
+            System.out.println("Todo ok, no hay sesiones de caja activa");
+        } else {
+            if (session.getIdSesionCaja() == null) {
+                session.setIdSesionCaja(sesionCaja.getIdSesion());
+                System.out.println("Seteando ID sesion caja " + sesionCaja.getIdSesion());
+            }
         }
+
     }
 
 
