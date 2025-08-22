@@ -1,11 +1,6 @@
 package dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import modelo.Cliente;
@@ -23,7 +18,7 @@ public class ClienteDAO {
     private static final String SQL_EXISTS_BY_TELEFONO = "SELECT 1 FROM clientes WHERE telefono = ? LIMIT 1";
 
     /**
-     * Helpers genéricos (así evitamos código DRY)
+     * Helpers genéricos
      */
     private boolean existsQuery(String sql, String param) {
         if (param == null || param.trim().isEmpty()) {
@@ -134,7 +129,7 @@ public class ClienteDAO {
             }
 
         } catch (SQLIntegrityConstraintViolationException ex) {
-            // Violación de constraint única (duplicado) — mapear a log claro.
+            // Violación de constraint única (duplicado) — maepamos los logs 
             LOGGER.log(Level.WARNING, "insertarCliente: violación de constraint (posible duplicado): {0}", ex.getMessage());
             LOGGER.log(Level.FINE, "Detalle", ex);
             return null;

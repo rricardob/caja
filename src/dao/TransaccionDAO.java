@@ -4,10 +4,14 @@ import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import modelo.Transaccion;
 import util.ConexionDB;
 
 public class TransaccionDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(TransaccionDAO.class.getName());
 
     /**
      * Guarda una transacción de tipo INGRESO.
@@ -71,13 +75,15 @@ public class TransaccionDAO {
             return idTransaccion;
 
         } catch (SQLException e) {
-            System.err.println("Error guardarIngreso: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Error guardarIngreso", e);
             try {
                 if (conn != null) {
                     conn.rollback();
+                    LOGGER.log(Level.FINE, "Rollback exitoso en guardarIngreso");
                 }
             } catch (SQLException ex) {
-                /* ignore */ }
+                LOGGER.log(Level.WARNING, "Rollback falló en guardarIngreso", ex);
+            }
             return -1;
         } finally {
             try {
@@ -85,25 +91,29 @@ public class TransaccionDAO {
                     rsKeys.close();
                 }
             } catch (SQLException e) {
+                LOGGER.log(Level.FINE, "rsKeys.close fallo", e);
             }
             try {
                 if (pstInsertTrans != null) {
                     pstInsertTrans.close();
                 }
             } catch (SQLException e) {
+                LOGGER.log(Level.FINE, "pstInsertTrans.close fallo", e);
             }
             try {
                 if (pstInsertRegistro != null) {
                     pstInsertRegistro.close();
                 }
             } catch (SQLException e) {
+                LOGGER.log(Level.FINE, "pstInsertRegistro.close fallo", e);
             }
             try {
                 if (conn != null) {
                     conn.setAutoCommit(true);
+                    conn.close();
                 }
-                conn.close();
             } catch (SQLException e) {
+                LOGGER.log(Level.FINE, "conn.close fallo", e);
             }
         }
     }
@@ -167,7 +177,7 @@ public class TransaccionDAO {
                 }
             }
         } catch (SQLException ex) {
-            System.err.println("Error listarIngresosPorSesion: " + ex.getMessage());
+            LOGGER.log(Level.SEVERE, "Error listarIngresosPorSesion", ex);
             // devuelve lista (posiblemente vacía)
         }
         return lista;
@@ -208,54 +218,61 @@ public class TransaccionDAO {
                 }
             }
         } catch (SQLException ex) {
-            System.err.println("Error obtenerTransaccionPorId: " + ex.getMessage());
+            LOGGER.log(Level.SEVERE, "Error obtenerTransaccionPorId", ex);
         }
         return null;
     }
 
     /**
      * Obtiene el calculo total de todas las transacciones segun la sesion
+     *
      * @param idSesion
      * @param saldoInicial
      *
      * @return BigDecimal
      */
     public BigDecimal calcularSaldoFinalDeSesion(Integer idSesion, BigDecimal saldoInicial) {
-        String sql = "SELECT " +
-                    "    SUM(CASE WHEN tt.direccion = 'INGRESO' THEN t.importe ELSE 0 END) as total_ingresos, " +
-                    "    SUM(CASE WHEN tt.direccion = 'EGRESO' THEN t.importe ELSE 0 END) as total_egresos, " +
-                    "    COUNT(*) as total_transacciones " +
-                    "FROM transacciones t " +
-                    "INNER JOIN tipos_transaccion tt ON t.id_tipo = tt.id_tipo " +
-                    "WHERE t.id_sesion = ? and t.procesada_en_sesion = 0";
-        
+        String sql = "SELECT "
+                + "    SUM(CASE WHEN tt.direccion = 'INGRESO' THEN t.importe ELSE 0 END) as total_ingresos, "
+                + "    SUM(CASE WHEN tt.direccion = 'EGRESO' THEN t.importe ELSE 0 END) as total_egresos, "
+                + "    COUNT(*) as total_transacciones "
+                + "FROM transacciones t "
+                + "INNER JOIN tipos_transaccion tt ON t.id_tipo = tt.id_tipo "
+                + "WHERE t.id_sesion = ? and t.procesada_en_sesion = 0";
+
         try (Connection conn = ConexionDB.obtenerConexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setLong(1, idSesion);
-            
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                BigDecimal totalIngresos = rs.getBigDecimal("total_ingresos");
-                BigDecimal totalEgresos = rs.getBigDecimal("total_egresos");
-                int totalTransacciones = rs.getInt("total_transacciones");
-                
-                if (totalIngresos == null) totalIngresos = BigDecimal.ZERO;
-                if (totalEgresos == null) totalEgresos = BigDecimal.ZERO;
-                
-                BigDecimal saldoFinal = saldoInicial.add(totalIngresos).subtract(totalEgresos); 
-                return saldoFinal;
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    BigDecimal totalIngresos = rs.getBigDecimal("total_ingresos");
+                    BigDecimal totalEgresos = rs.getBigDecimal("total_egresos");
+                    int totalTransacciones = rs.getInt("total_transacciones");
+
+                    if (totalIngresos == null) {
+                        totalIngresos = BigDecimal.ZERO;
+                    }
+                    if (totalEgresos == null) {
+                        totalEgresos = BigDecimal.ZERO;
+                    }
+
+                    BigDecimal saldoFinal = saldoInicial.add(totalIngresos).subtract(totalEgresos);
+                    return saldoFinal;
+                }
             }
         } catch (SQLException ex) {
-            System.err.println("Error calcularSaldoFinalDeSesion: " + ex.getMessage());
+            LOGGER.log(Level.SEVERE, "Error calcularSaldoFinalDeSesion", ex);
         }
-        
+
         return saldoInicial;
     }
-    
-    
+
     /**
-     * Actualiza los registros que ya fueron calculados para el saldo total al cierre de caja
+     * Actualiza los registros que ya fueron calculados para el saldo total al
+     * cierre de caja
+     *
      * @param idSesion
      *
      * @return BigDecimal
@@ -270,14 +287,15 @@ public class TransaccionDAO {
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException ex) {
-            System.err.println("Error al actualizarSesion: " + ex.getMessage());
+            LOGGER.log(Level.SEVERE, "Error al actualizarTransaccionesProcesadas", ex);
         }
         return Boolean.FALSE;
     }
-    
-    
+
     /**
-     * Obtiene el calculo total de todas las transacciones pendientes segun la sesion
+     * Obtiene el calculo total de todas las transacciones pendientes segun la
+     * sesion
+     *
      * @param idSesion
      *
      * @return BigDecimal
@@ -290,14 +308,14 @@ public class TransaccionDAO {
 
             stmt.setInt(1, idSesion);
 
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                int conteo = rs.getInt("conteo");
-                return conteo > 0;
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int conteo = rs.getInt("conteo");
+                    return conteo > 0;
+                }
             }
-            
         } catch (SQLException ex) {
-            System.err.println("Error existeSesionAbiertaV2: " + ex.getMessage());
+            LOGGER.log(Level.SEVERE, "Error existeRegistrosPorProcesar", ex);
         }
 
         return false;

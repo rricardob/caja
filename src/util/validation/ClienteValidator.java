@@ -5,8 +5,7 @@ import modelo.Cliente;
 import java.util.regex.Pattern;
 
 /**
- * Valida los campos de Cliente. Devuelve ValidationResult (OK o mensaje).
- * Reutilizable desde Controller o desde otros sitios.
+ * Validador para Frm_Cliente
  */
 public class ClienteValidator {
 
