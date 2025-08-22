@@ -2,16 +2,17 @@ package vista;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-//import javax.swing.SwingUtilities;
 import controlador.IngresoController;
 import modelo.Cliente;
-//import java.math.BigDecimal;
+import modelo.Transaccion;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
-import modelo.Transaccion;
+import util.ui.DocumentFilters;
+import util.ui.UIHelpers;
+import util.validation.ValidationResult;
 import vista.dataTableModel.TransaccionTableModel;
 
 public class Frm_Ingreso extends javax.swing.JInternalFrame {
@@ -20,7 +21,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     private final IngresoController controller;
     private Cliente clienteSeleccionado;
 
-    // Nuevo: modelo de la tabla
+    // Modelo De La Tabla
     private TransaccionTableModel transaccionTableModel;
 
     public Frm_Ingreso() {
@@ -28,16 +29,48 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         this.controller = new IngresoController();
         this.setClosable(true);
         this.setTitle("Recibo de Ingresos");
+
         // Inicializar el table model y asignarlo
         transaccionTableModel = new TransaccionTableModel();
         jTable1.setModel(transaccionTableModel);
+
         // Cargar datos en la tabla (fuera del EDT)
         cargarIngresosEnTabla();
+
         try {
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             lblFecha.setText(LocalDate.now().format(fmt));
         } catch (Exception e) {
+            LOGGER.log(Level.FINE, "No se pudo formatear la fecha: {0}", e.toString());
         }
+
+        // Bloqueamos Sr y Dirección para que no sean editables manualmente
+        txtSr.setEditable(false);
+        txtDireccion.setEditable(false);
+        // sincronizar placeholder state para campos no editables
+        UIHelpers.updatePlaceholderState(txtSr);
+        UIHelpers.updatePlaceholderState(txtDireccion);
+
+        // Aplicar filtros
+        DocumentFilters.attachNumeric(txtDoc, 11);
+        DocumentFilters.attachDecimal(txtImporte, 20);
+        DocumentFilters.attachTextAreaLimit(txtDescripcionArea, 200);
+
+        // Tooltips + efecto "azul al foco"
+        UIHelpers.attachHintAndFocusColor(txtDoc, "Ingrese DNI o RUC (8-11 dígitos).");
+        UIHelpers.attachHintAndFocusColor(txtDescripcionArea, "Descripción (5-200 caracteres).");
+        UIHelpers.attachHintAndFocusColor(txtImporte, "Importe (>= 1). Puede usar coma o punto decimal.");
+
+        // Placeholders (no se aplican a campos bloqueados)
+        UIHelpers.attachPlaceholder(txtDoc, " DNI o RUC");
+        UIHelpers.attachPlaceholder(txtDescripcionArea, " Motivo o Descripción");
+        UIHelpers.attachPlaceholder(txtImporte, " Importe");
+
+        // Si alguno de los campos tenía texto (programático) ya, actualizar su estado
+        UIHelpers.updatePlaceholderState(txtDoc);
+        UIHelpers.updatePlaceholderState(txtDescripcionArea);
+        UIHelpers.updatePlaceholderState(txtImporte);
+
     }
 
     /**
@@ -85,11 +118,12 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         lblFecha = new javax.swing.JLabel();
         btnBuscarCliente = new javax.swing.JButton();
         lblDescripcion = new javax.swing.JLabel();
-        txtDescripcion = new javax.swing.JTextField();
         btnGuardar = new javax.swing.JButton();
         btnCancelar = new javax.swing.JButton();
         lblImporte = new javax.swing.JLabel();
         txtImporte = new javax.swing.JTextField();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        txtDescripcionArea = new javax.swing.JTextArea();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
@@ -119,12 +153,6 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
 
         lblDescripcion.setText("Descripción :");
 
-        txtDescripcion.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtDescripcionActionPerformed(evt);
-            }
-        });
-
         btnGuardar.setText("GUARDAR");
         btnGuardar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -141,6 +169,10 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
 
         lblImporte.setText("Importe :  ");
 
+        txtDescripcionArea.setColumns(20);
+        txtDescripcionArea.setRows(5);
+        jScrollPane2.setViewportView(txtDescripcionArea);
+
         javax.swing.GroupLayout panel_registro_ingresosLayout = new javax.swing.GroupLayout(panel_registro_ingresos);
         panel_registro_ingresos.setLayout(panel_registro_ingresosLayout);
         panel_registro_ingresosLayout.setHorizontalGroup(
@@ -149,23 +181,23 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 .addContainerGap()
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
+                        .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 145, Short.MAX_VALUE)
+                        .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
                         .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lblDoc)
                             .addComponent(lblSr)
-                            .addComponent(lblImporte)
                             .addComponent(lblDireccion)
-                            .addComponent(lblDescripcion))
+                            .addComponent(lblDescripcion)
+                            .addComponent(lblImporte))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(txtDescripcion, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtDireccion, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtDoc, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(txtSr)
-                            .addComponent(txtDoc)
-                            .addComponent(txtImporte)))
-                    .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
-                        .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 133, Short.MAX_VALUE)
-                        .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(txtDireccion)
+                            .addComponent(txtImporte))))
                 .addGap(18, 18, 18)
                 .addComponent(btnBuscarCliente)
                 .addGap(68, 68, 68)
@@ -182,26 +214,28 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                     .addComponent(btnBuscarCliente)
                     .addComponent(lblFecha))
                 .addGap(18, 18, 18)
-                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtSr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblSr))
                 .addGap(18, 18, 18)
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblDireccion)
-                    .addComponent(txtDireccion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(23, 23, 23)
+                    .addComponent(txtDireccion, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblDireccion))
+                .addGap(21, 21, 21)
+                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_registro_ingresosLayout.createSequentialGroup()
+                        .addComponent(lblDescripcion)
+                        .addGap(23, 23, 23)))
+                .addGap(18, 18, 18)
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtDescripcion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblDescripcion))
-                .addGap(23, 23, 23)
+                    .addComponent(lblImporte, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtImporte, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblImporte)
-                    .addComponent(txtImporte, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(17, 17, 17)
-                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
-                    .addComponent(btnCancelar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(19, 19, 19))
+                    .addComponent(btnGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnCancelar, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Listado De Registro - Ingresos"));
@@ -225,15 +259,15 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 667, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 218, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(22, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -242,17 +276,17 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(panel_registro_ingresos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(37, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(panel_registro_ingresos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(25, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(panel_registro_ingresos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(29, 29, 29)
+                .addGap(18, 18, 18)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -264,12 +298,8 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtSrActionPerformed
 
-    private void txtDescripcionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtDescripcionActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtDescripcionActionPerformed
-
     private void btnBuscarClienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarClienteActionPerformed
-        String doc = txtDoc.getText().trim();
+        String doc = UIHelpers.getText(txtDoc).trim();
         if (doc.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Ingrese el DNI o RUC para buscar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
@@ -281,50 +311,38 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
 
             if (c == null) {
                 int resp = JOptionPane.showConfirmDialog(this, "Cliente no encontrado. ¿Desea crear uno nuevo manualmente?", "Cliente no encontrado", JOptionPane.YES_NO_OPTION);
-                LOGGER.log(Level.INFO, "Respuesta JOptionPane: {0}", resp);
                 if (resp == JOptionPane.YES_OPTION) {
-
                     try {
-                        LOGGER.log(Level.INFO, "Preparando abrir Frm_Cliente desde Frm_Ingreso (doc={0})", doc);
-
-                        // Crear el internal frame con callback
                         vista.Frm_Cliente frmCliente = new vista.Frm_Cliente(creado -> {
-                            LOGGER.log(Level.INFO, "Callback onClienteCreated invoked with: {0}", creado);
                             if (creado != null) {
                                 clienteSeleccionado = creado;
                                 txtSr.setText(creado.getNombre_completo());
                                 txtDireccion.setText(creado.getDireccion());
                                 txtSr.setEditable(false);
                                 txtDireccion.setEditable(false);
-                                // Setear ya sea DNI o RUC 
                                 txtDoc.setText(getIdentificadorCliente(creado));
-                                LOGGER.log(Level.INFO, "Cliente creado y seteado en Frm_Ingreso: {0}", creado.getId_cliente());
+                                // sincronizar placeholder state después de setText programático
+                                UIHelpers.updatePlaceholderState(txtSr);
+                                UIHelpers.updatePlaceholderState(txtDireccion);
+                                UIHelpers.updatePlaceholderState(txtDoc);
                             }
                         });
 
-                        // Buscar el JDesktopPane robustamente
                         javax.swing.JDesktopPane desktop = (javax.swing.JDesktopPane) javax.swing.SwingUtilities.getAncestorOfClass(
                                 javax.swing.JDesktopPane.class, this);
                         if (desktop == null) {
                             desktop = this.getDesktopPane();
                         }
-                        LOGGER.log(Level.INFO, "JDesktopPane encontrado => {0}", desktop);
 
                         if (desktop != null) {
-                            // Asegurar tamaño y visibilidad
                             frmCliente.pack();
                             if (frmCliente.getWidth() < 300 || frmCliente.getHeight() < 100) {
                                 frmCliente.setSize(420, 220);
                             }
-
-                            // Añadir y forzar revalidar/repaint
                             desktop.add(frmCliente);
                             desktop.revalidate();
                             desktop.repaint();
-
-                            // Mostrar y forzar foco/orden
                             frmCliente.setVisible(true);
-                            // mover al frente del desktop
                             desktop.moveToFront(frmCliente);
                             try {
                                 frmCliente.setSelected(true);
@@ -332,8 +350,6 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                                 LOGGER.log(Level.WARNING, "setSelected fallo: {0}", ex.getMessage());
                             }
                             frmCliente.toFront();
-
-                            LOGGER.log(Level.INFO, "Frm_Cliente añadido y visible en JDesktopPane");
                         } else {
                             String msg = "No se encontró JDesktopPane en la jerarquía. Asegúrate de que Frm_Ingreso esté dentro de un JDesktopPane.";
                             LOGGER.log(Level.SEVERE, msg);
@@ -342,25 +358,23 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
 
                     } catch (Exception ex) {
                         LOGGER.log(Level.SEVERE, "Error al abrir Frm_Cliente: {0}", ex.toString());
-                        ex.printStackTrace();
                         JOptionPane.showMessageDialog(this, "Error al abrir formulario de cliente: " + ex.getMessage(),
                                 "Error", JOptionPane.ERROR_MESSAGE);
                     }
-
-                } // end YES_OPTION
+                }
             } else {
                 clienteSeleccionado = c;
                 txtSr.setText(c.getNombre_completo());
                 txtDireccion.setText(c.getDireccion());
                 txtSr.setEditable(false);
                 txtDireccion.setEditable(false);
-                // Mostrar DNI o RUC en el campo de búsqueda
                 txtDoc.setText(getIdentificadorCliente(c));
-                LOGGER.log(Level.INFO, "Cliente encontrado: {0}", c.getId_cliente());
+                UIHelpers.updatePlaceholderState(txtSr);
+                UIHelpers.updatePlaceholderState(txtDireccion);
+                UIHelpers.updatePlaceholderState(txtDoc);
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error buscar cliente: {0}", e.toString());
-            e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error al buscar cliente: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnBuscarClienteActionPerformed
@@ -384,32 +398,20 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
         try {
-            String nombreCliente = txtSr.getText().trim();
-            String direccion = txtDireccion.getText().trim();
-            String doc = txtDoc.getText().trim();
-            String descripcion = txtDescripcion.getText().trim();
-            String importeStr = txtImporte.getText().trim();
+            String nombreCliente = UIHelpers.getText(txtSr).trim();
+            String direccion = UIHelpers.getText(txtDireccion).trim();
+            String doc = UIHelpers.getText(txtDoc).trim();
+            String descripcion = UIHelpers.getText(txtDescripcionArea).trim();
+            String importeStr = UIHelpers.getText(txtImporte).trim();
 
-            if (nombreCliente.isEmpty() || importeStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Complete al menos: Sr. e Importe.", "Datos incompletos", JOptionPane.WARNING_MESSAGE);
+            // Validación centralizada a través del controller (homogeneidad)
+            ValidationResult vr = controller.validateIngreso(doc, descripcion, importeStr);
+            if (!vr.isOk()) {
+                JOptionPane.showMessageDialog(this, vr.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            java.math.BigDecimal importe;
-            try {
-                importe = new java.math.BigDecimal(importeStr);
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Importe inválido.", "Error", JOptionPane.ERROR_MESSAGE);
-                LOGGER.log(Level.WARNING, "Importe inválido: {0}", importeStr);
-                return;
-            }
-
-            if (importe.compareTo(java.math.BigDecimal.ZERO) <= 0) {
-                JOptionPane.showMessageDialog(this, "El importe debe ser mayor que cero.", "Importe inválido", JOptionPane.WARNING_MESSAGE);
-                LOGGER.log(Level.WARNING, "Intento de guardar con importe <= 0: {0}", importe);
-                return;
-            }
-
+            // Si cliente no fue cargado, intentar buscarlo por el identificador
             if (clienteSeleccionado == null && !doc.isEmpty()) {
                 clienteSeleccionado = controller.buscarClientePorDoc(doc);
             }
@@ -419,14 +421,22 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 return;
             }
 
+            // Normalizar coma a punto antes de parsear
+            String normalizedImporte = importeStr.replace(',', '.');
+            java.math.BigDecimal importe = new java.math.BigDecimal(normalizedImporte);
+
             int idTrans = controller.guardarIngreso(clienteSeleccionado, importe, descripcion);
             if (idTrans > 0) {
                 JOptionPane.showMessageDialog(this, "Ingreso registrado correctamente (ID: " + idTrans + ").", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                txtDescripcion.setText("");
+                txtDescripcionArea.setText("");
                 txtImporte.setText("");
+                // actualizar placeholder state de estos campos vacíos
+                UIHelpers.updatePlaceholderState(txtDescripcionArea);
+                UIHelpers.updatePlaceholderState(txtImporte);
+
                 LOGGER.log(Level.INFO, "Ingreso registrado ID: {0} clienteId: {1} importe: {2}", new Object[]{idTrans, clienteSeleccionado.getId_cliente(), importe});
 
-                // --- NUEVO: obtener la transaccion desde la BDD y añadirla al modelo ---
+                // Añadir la transacción recien creada al modelo (background)
                 SwingWorker<Transaccion, Void> workerAdd = new SwingWorker<Transaccion, Void>() {
                     @Override
                     protected Transaccion doInBackground() throws Exception {
@@ -444,7 +454,6 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                             Transaccion t = get();
                             if (t != null) {
                                 transaccionTableModel.add(t);
-                                // Opcional: scroll hacia la nueva fila
                                 int row = transaccionTableModel.getRowCount() - 1;
                                 if (row >= 0) {
                                     jTable1.scrollRectToVisible(jTable1.getCellRect(row, 0, true));
@@ -464,6 +473,10 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 LOGGER.log(Level.SEVERE, "Error al registrar ingreso. clienteId: {0} importe: {1}", new Object[]{clienteSeleccionado != null ? clienteSeleccionado.getId_cliente() : -1, importe});
             }
 
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            // Errores esperados desde controller (validación/estado)
+            LOGGER.log(Level.WARNING, "Validación/Estado inválido al guardar ingreso: {0}", ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Validación / Estado", JOptionPane.WARNING_MESSAGE);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Excepción guardar ingreso: {0}", e.getMessage());
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Excepción", JOptionPane.ERROR_MESSAGE);
@@ -481,6 +494,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable1;
     private javax.swing.JLabel lblDescripcion;
     private javax.swing.JLabel lblDireccion;
@@ -489,7 +503,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     private javax.swing.JLabel lblImporte;
     private javax.swing.JLabel lblSr;
     private javax.swing.JPanel panel_registro_ingresos;
-    private javax.swing.JTextField txtDescripcion;
+    private javax.swing.JTextArea txtDescripcionArea;
     private javax.swing.JTextField txtDireccion;
     private javax.swing.JTextField txtDoc;
     private javax.swing.JTextField txtImporte;
