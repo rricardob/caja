@@ -141,4 +141,32 @@ public class ClienteDAO {
         }
     }
 
+    public Cliente buscarPorNombre(String nombre) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            return null;
+        }
+        String sql = "SELECT id_cliente, nombre_completo, direccion, doc_identidad, telefono, ruc "
+                + "FROM clientes WHERE nombre_completo = ? LIMIT 1";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, nombre);
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    Cliente c = new Cliente();
+                    c.setId_cliente(rs.getInt("id_cliente"));
+                    c.setNombre_completo(rs.getString("nombre_completo"));
+                    c.setDireccion(rs.getString("direccion"));
+                    c.setDoc_identidad(rs.getString("doc_identidad"));
+                    c.setTelefono(rs.getString("telefono"));
+                    c.setRuc(rs.getString("ruc"));
+                    return c;
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error buscarPorNombre: {0}", e.toString());
+            LOGGER.log(Level.FINE, "Detalle", e);
+        }
+        return null;
+    }
+
 }

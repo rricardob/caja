@@ -318,7 +318,9 @@ public class menu extends javax.swing.JFrame {
 
     private void configurarItemsMenuReposiciones() {
         JMenu reposiciones = new JMenu("Reposiciones");
-
+        JMenuItem registroReposicion = new JMenuItem("Registro Reposicion");
+        registroReposicion.addActionListener(e -> abrirReposicionAgregar());
+        reposiciones.add(registroReposicion);
         menu_1.add(reposiciones);
     }
 
@@ -401,6 +403,18 @@ public class menu extends javax.swing.JFrame {
 
     }
 
+    private void abrirReposicionAgregar() {
+        this.estadoCaja = cajaController.puedeAperturarSesion(session.getIdUsuario());
+        if (!this.estadoCaja) {
+            JOptionPane.showMessageDialog(this, "La caja no se encuentra aperturada!!!");
+            return;
+        }
+        Frm_Reposicion_Agregar reposicion = new Frm_Reposicion_Agregar();
+        reposicion.pack();
+        desktop.add(reposicion);
+        reposicion.setVisible(true);
+        ViewUtil.centerScreen(desktop, reposicion);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JDesktopPane desktop;

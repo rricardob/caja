@@ -51,5 +51,9 @@ public class ClienteController {
     public Cliente buscarPorIdentificador(String id) {
         return dao.buscarPorIdentificador(id);
     }
+    
+    public Cliente buscarPorNombre(String nombre) {
+        return dao.buscarPorNombre(nombre);
+    }
 
 }
