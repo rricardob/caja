@@ -21,6 +21,8 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
     private static final Logger LOGGER = Logger.getLogger(Frm_Cliente.class.getName());
     private final ClienteController clienteController = new controlador.ClienteController();
     private Cliente clienteCreado;
+    private boolean editMode = false;
+    private Cliente editingCliente = null;
 
     // callback que invocaremos cuando se cree el cliente (puede ser null)
     private Consumer<Cliente> onClienteCreated;
@@ -37,6 +39,19 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
     public Frm_Cliente(Consumer<Cliente> onClienteCreated) {
         this();
         this.onClienteCreated = onClienteCreated;
+    }
+
+    /**
+     * Constructor para editar un cliente existente. onClienteUpdated será
+     * llamado al guardar.
+     */
+    public Frm_Cliente(Cliente existing, Consumer<Cliente> onClienteUpdated) {
+        this(onClienteUpdated); // llama al constructor base que ya inicializa todo
+        if (existing != null) {
+            this.editMode = true;
+            this.editingCliente = existing;
+            populateForEdit(existing);
+        }
     }
 
     private void configureFrame() {
@@ -280,31 +295,49 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
             return;
         }
 
-        // Intentar crear cliente (el controller puede seguir lanzando excepciones por problemas inesperados)
+        // Verificamos si Editamos o Creamos Cliente , Basado en ello Se Permite La Funcionalidad Correspondiente 
         try {
-            Cliente creado = clienteController.crearCliente(c, tipo);
-            if (creado != null) {
-                this.clienteCreado = creado;
-                JOptionPane.showMessageDialog(this, "Cliente creado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                // Notificar callback
-                if (onClienteCreated != null) {
-                    try {
-                        onClienteCreated.accept(creado);
-                    } catch (Exception ex) {
-                        LOGGER.log(Level.WARNING, "Callback fallo: {0}", ex.getMessage());
+            if (!editMode) {
+                Cliente creado = clienteController.crearCliente(c, tipo);
+                if (creado != null) {
+                    this.clienteCreado = creado;
+                    JOptionPane.showMessageDialog(this, "Cliente creado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    if (onClienteCreated != null) {
+                        try {
+                            onClienteCreated.accept(creado);
+                        } catch (Exception ex) {
+                            LOGGER.log(Level.WARNING, "Callback fallo: {0}", ex.getMessage());
+                        }
                     }
+                    this.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(this, "No se pudo crear cliente.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
-                this.dispose();
             } else {
-                JOptionPane.showMessageDialog(this, "No se pudo crear cliente.", "Error", JOptionPane.ERROR_MESSAGE);
+                // edición: preservar id
+                c.setId_cliente(editingCliente.getId_cliente());
+                boolean ok = clienteController.actualizarCliente(c, tipo);
+                if (ok) {
+                    JOptionPane.showMessageDialog(this, "Cliente actualizado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    if (onClienteCreated != null) {
+                        try {
+                            onClienteCreated.accept(c);
+                        } catch (Exception ex) {
+                            LOGGER.log(Level.WARNING, "Callback fallo: {0}", ex.getMessage());
+                        }
+                    }
+                    this.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(this, "No se pudo actualizar cliente.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         } catch (IllegalArgumentException ex) {
-            // Mensaje claro de validación desde ClienteValidator (propagado por controller)
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al crear cliente: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al procesar cliente: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             LOGGER.log(Level.SEVERE, "Excepción onAceptar: {0}", ex.toString());
         }
+
     }
 
     /**
@@ -317,6 +350,30 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
     public Cliente getClienteCreado() {
         return clienteCreado;
     }
+
+    private void populateForEdit(Cliente c) {
+        if (c == null) {
+            return;
+        }
+        // Rellenar campos usando UIHelpers (para respetar placeholders)
+        txtNombre.setText(c.getNombre_completo());
+        txtDireccion.setText(c.getDireccion());
+        txtDoc.setText(c.getDoc_identidad() == null ? "" : c.getDoc_identidad());
+        txtRuc.setText(c.getRuc() == null ? "" : c.getRuc());
+        txtTelefono.setText(c.getTelefono() == null ? "" : c.getTelefono());
+
+        // Determinar tipo según datos existentes
+        boolean persona = c.getDoc_identidad() != null && !c.getDoc_identidad().trim().isEmpty();
+        cbTipo.setSelectedItem(persona ? "Persona" : "Empresa");
+        // actualizar estados y placeholders
+        updateTipoFields();
+        UIHelpers.updatePlaceholderState(txtNombre);
+        UIHelpers.updatePlaceholderState(txtDireccion);
+        UIHelpers.updatePlaceholderState(txtDoc);
+        UIHelpers.updatePlaceholderState(txtRuc);
+        UIHelpers.updatePlaceholderState(txtTelefono);
+    }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAceptar;

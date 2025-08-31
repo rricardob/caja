@@ -5,6 +5,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import modelo.Cliente;
 import util.ConexionDB;
+import java.util.List;
+import java.util.ArrayList;
 
 public class ClienteDAO {
 
@@ -138,6 +140,77 @@ public class ClienteDAO {
             LOGGER.log(Level.SEVERE, "Error insertarCliente: {0}", ex.toString());
             LOGGER.log(Level.FINE, "Detalle", ex);
             return null;
+        }
+    }
+
+    /**
+     * Lista todos los clientes (orden por nombre). Retorna lista vacía si no
+     * hay.
+     */
+    public List<Cliente> listarTodos() {
+        List<Cliente> lista = new ArrayList<>();
+        String sql = "SELECT id_cliente, nombre_completo, direccion, doc_identidad, telefono, ruc FROM clientes ORDER BY nombre_completo ASC";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql);
+                ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                modelo.Cliente c = new modelo.Cliente();
+                c.setId_cliente(rs.getInt("id_cliente"));
+                c.setNombre_completo(rs.getString("nombre_completo"));
+                c.setDireccion(rs.getString("direccion"));
+                c.setDoc_identidad(rs.getString("doc_identidad"));
+                c.setTelefono(rs.getString("telefono"));
+                c.setRuc(rs.getString("ruc"));
+                lista.add(c);
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error listarTodos clientes", ex);
+        }
+        return lista;
+    }
+
+    /**
+     * Actualiza un cliente existente. Retorna true si se actualizó.
+     */
+    public boolean actualizarCliente(Cliente cliente) {
+        if (cliente == null || cliente.getId_cliente() <= 0) {
+            return false;
+        }
+        String sql = "UPDATE clientes SET nombre_completo = ?, direccion = ?, doc_identidad = ?, telefono = ?, ruc = ? WHERE id_cliente = ?";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, cliente.getNombre_completo());
+            pst.setString(2, cliente.getDireccion());
+            pst.setString(3, cliente.getDoc_identidad());
+            pst.setString(4, cliente.getTelefono());
+            pst.setString(5, cliente.getRuc());
+            pst.setInt(6, cliente.getId_cliente());
+            return pst.executeUpdate() > 0;
+        } catch (SQLIntegrityConstraintViolationException ex) {
+            // duplicado u otra restriccion
+            LOGGER.log(Level.WARNING, "actualizarCliente: violación de constraint: {0}", ex.getMessage());
+            return false;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error actualizarCliente", ex);
+            return false;
+        }
+    }
+
+    /**
+     * Elimina un cliente por id. Retorna true si se eliminó.
+     */
+    public boolean eliminarClientePorId(int idCliente) {
+        if (idCliente <= 0) {
+            return false;
+        }
+        String sql = "DELETE FROM clientes WHERE id_cliente = ?";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, idCliente);
+            return pst.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error eliminarClientePorId", ex);
+            return false;
         }
     }
 

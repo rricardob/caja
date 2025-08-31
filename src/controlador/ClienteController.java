@@ -6,6 +6,9 @@ import util.validation.ClienteValidator;
 import util.validation.ValidationResult;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class ClienteController {
 
@@ -50,6 +53,47 @@ public class ClienteController {
      */
     public Cliente buscarPorIdentificador(String id) {
         return dao.buscarPorIdentificador(id);
+    }
+
+    /**
+     * Retorna la lista completa de clientes (o vacía en error).
+     */
+    public List<Cliente> listarClientes() {
+        try {
+            return dao.listarTodos();
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error listarClientes", ex);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Actualiza un cliente: valida y luego llama a DAO. Retorna true si
+     * actualizó. Lanza IllegalArgumentException si la validación falla.
+     */
+    public boolean actualizarCliente(Cliente c, String tipo) {
+        // validar con validator (reutiliza validateForType)
+        ValidationResult r = validator.validateForType(c, tipo);
+        if (!r.isOk()) {
+            throw new IllegalArgumentException(r.getMessage());
+        }
+        boolean ok = dao.actualizarCliente(c);
+        if (!ok) {
+            LOGGER.log(Level.WARNING, "DAO no actualizó cliente: {0}", c);
+        }
+        return ok;
+    }
+
+    /**
+     * Elimina cliente por id. Retorna true si OK.
+     */
+    public boolean eliminarCliente(int idCliente) {
+        try {
+            return dao.eliminarClientePorId(idCliente);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error eliminarCliente", ex);
+            return false;
+        }
     }
 
 }
