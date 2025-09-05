@@ -1,21 +1,13 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package util;
 
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.util.Locale;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
-/**
- *
- * @author ricardo
- */
+
 public class NumberFilter extends DocumentFilter {
 
     // Formato para enteros (sin decimales)
