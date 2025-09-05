@@ -321,7 +321,10 @@ public class menu extends javax.swing.JFrame {
         JMenu reposiciones = new JMenu("Reposiciones");
         JMenuItem registroReposicion = new JMenuItem("Registro Reposicion");
         registroReposicion.addActionListener(e -> abrirReposicionAgregar());
+        JMenuItem listadoReposicion = new JMenuItem("Listado Reposicion");
+        listadoReposicion.addActionListener(e -> abrirReposicionListado());
         reposiciones.add(registroReposicion);
+        reposiciones.add(listadoReposicion);
         menu_1.add(reposiciones);
     }
 
@@ -439,6 +442,14 @@ public class menu extends javax.swing.JFrame {
         desktop.add(reposicion);
         reposicion.setVisible(true);
         ViewUtil.centerScreen(desktop, reposicion);
+    }
+    
+    private void abrirReposicionListado() {
+        Frm_Listado_Reposicion frm_Listado_Reposicion = new Frm_Listado_Reposicion();
+        frm_Listado_Reposicion.pack();
+        desktop.add(frm_Listado_Reposicion);
+        frm_Listado_Reposicion.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm_Listado_Reposicion);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

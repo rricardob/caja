@@ -11,16 +11,18 @@ public class Reposicion {
     private int aprobado_por;
     private boolean mostrado_en_pantalla;
     private Timestamp fecha_creacion;
+    private Timestamp fecha_aprobacion;
 
     public Reposicion() {
     }
 
-    public Reposicion(int id_reposicionamiento, Transaccion transaccion, int aprobado_por, boolean mostrado_en_pantalla, Timestamp fecha_creacion) {
+    public Reposicion(int id_reposicionamiento, Transaccion transaccion, int aprobado_por, boolean mostrado_en_pantalla, Timestamp fecha_creacion, Timestamp fecha_aprobacion) {
         this.id_reposicionamiento = id_reposicionamiento;
         this.transaccion = transaccion;
         this.aprobado_por = aprobado_por;
         this.mostrado_en_pantalla = mostrado_en_pantalla;
         this.fecha_creacion = fecha_creacion;
+        this.fecha_aprobacion = fecha_aprobacion;
     }
 
     public int getId_reposicionamiento() {
@@ -63,6 +65,14 @@ public class Reposicion {
         this.fecha_creacion = fecha_creacion;
     }
 
+    public Timestamp getFecha_aprobacion() {
+        return fecha_aprobacion;
+    }
+
+    public void setFecha_aprobacion(Timestamp fecha_aprobacion) {
+        this.fecha_aprobacion = fecha_aprobacion;
+    }
+    
     @Override
     public String toString() {
         return "Reposicion{" + "id_reposicionamiento=" + id_reposicionamiento + ", transaccion=" + transaccion + ", aprobado_por=" + aprobado_por + ", mostrado_en_pantalla=" + mostrado_en_pantalla + ", fecha_creacion=" + fecha_creacion + '}';
