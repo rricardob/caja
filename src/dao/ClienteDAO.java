@@ -5,6 +5,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import modelo.Cliente;
 import util.ConexionDB;
+import java.util.List;
+import java.util.ArrayList;
 
 public class ClienteDAO {
 
@@ -55,6 +57,101 @@ public class ClienteDAO {
 
     public boolean existsByTelefono(String tel) {
         return existsQuery(SQL_EXISTS_BY_TELEFONO, tel);
+    }
+
+    public boolean existsByNombreExceptId(String nombre, int idExcept) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT 1 FROM clientes WHERE nombre_completo = ? AND id_cliente <> ? LIMIT 1";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, nombre);
+            pst.setInt(2, idExcept);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "existsByNombreExceptId fallo: {0}", e.toString());
+            LOGGER.log(Level.FINE, "Detalle", e);
+            return false;
+        }
+    }
+
+    public boolean existsByDireccionExceptId(String direccion, int idExcept) {
+        if (direccion == null || direccion.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT 1 FROM clientes WHERE direccion = ? AND id_cliente <> ? LIMIT 1";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, direccion);
+            pst.setInt(2, idExcept);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "existsByDireccionExceptId fallo: {0}", e.toString());
+            LOGGER.log(Level.FINE, "Detalle", e);
+            return false;
+        }
+    }
+
+    public boolean existsByDocExceptId(String doc, int idExcept) {
+        if (doc == null || doc.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT 1 FROM clientes WHERE doc_identidad = ? AND id_cliente <> ? LIMIT 1";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, doc);
+            pst.setInt(2, idExcept);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "existsByDocExceptId fallo: {0}", e.toString());
+            LOGGER.log(Level.FINE, "Detalle", e);
+            return false;
+        }
+    }
+
+    public boolean existsByRucExceptId(String ruc, int idExcept) {
+        if (ruc == null || ruc.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT 1 FROM clientes WHERE ruc = ? AND id_cliente <> ? LIMIT 1";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, ruc);
+            pst.setInt(2, idExcept);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "existsByRucExceptId fallo: {0}", e.toString());
+            LOGGER.log(Level.FINE, "Detalle", e);
+            return false;
+        }
+    }
+
+    public boolean existsByTelefonoExceptId(String tel, int idExcept) {
+        if (tel == null || tel.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT 1 FROM clientes WHERE telefono = ? AND id_cliente <> ? LIMIT 1";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, tel);
+            pst.setInt(2, idExcept);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "existsByTelefonoExceptId fallo: {0}", e.toString());
+            LOGGER.log(Level.FINE, "Detalle", e);
+            return false;
+        }
     }
 
     /**
@@ -141,6 +238,78 @@ public class ClienteDAO {
         }
     }
 
+    /**
+     * Lista todos los clientes (orden por nombre). Retorna lista vacía si no
+     * hay.
+     */
+    public List<Cliente> listarTodos() {
+        List<Cliente> lista = new ArrayList<>();
+        String sql = "SELECT id_cliente, nombre_completo, direccion, doc_identidad, telefono, ruc FROM clientes ORDER BY nombre_completo ASC";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql);
+                ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                modelo.Cliente c = new modelo.Cliente();
+                c.setId_cliente(rs.getInt("id_cliente"));
+                c.setNombre_completo(rs.getString("nombre_completo"));
+                c.setDireccion(rs.getString("direccion"));
+                c.setDoc_identidad(rs.getString("doc_identidad"));
+                c.setTelefono(rs.getString("telefono"));
+                c.setRuc(rs.getString("ruc"));
+                lista.add(c);
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error listarTodos clientes", ex);
+        }
+        return lista;
+    }
+
+    /**
+     * Actualiza un cliente existente. Retorna true si se actualizó.
+     */
+    public boolean actualizarCliente(Cliente cliente) {
+        if (cliente == null || cliente.getId_cliente() <= 0) {
+            return false;
+        }
+        String sql = "UPDATE clientes SET nombre_completo = ?, direccion = ?, doc_identidad = ?, telefono = ?, ruc = ? WHERE id_cliente = ?";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, cliente.getNombre_completo());
+            pst.setString(2, cliente.getDireccion());
+            pst.setString(3, cliente.getDoc_identidad());
+            pst.setString(4, cliente.getTelefono());
+            pst.setString(5, cliente.getRuc());
+            pst.setInt(6, cliente.getId_cliente());
+            return pst.executeUpdate() > 0;
+        } catch (SQLIntegrityConstraintViolationException ex) {
+            // duplicado u otra restriccion
+            LOGGER.log(Level.WARNING, "actualizarCliente: violación de constraint: {0}", ex.getMessage());
+            return false;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error actualizarCliente", ex);
+            return false;
+        }
+    }
+
+    /**
+     * Elimina un cliente por id. Retorna true si se eliminó.
+     */
+    public boolean eliminarClientePorId(int idCliente) {
+        if (idCliente <= 0) {
+            return false;
+        }
+        String sql = "DELETE FROM clientes WHERE id_cliente = ?";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, idCliente);
+            return pst.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error eliminarClientePorId", ex);
+            return false;
+        }
+    }
+    
+
     public Cliente buscarPorNombre(String nombre) {
         if (nombre == null || nombre.trim().isEmpty()) {
             return null;
@@ -167,6 +336,7 @@ public class ClienteDAO {
             LOGGER.log(Level.FINE, "Detalle", e);
         }
         return null;
+
     }
 
 }
