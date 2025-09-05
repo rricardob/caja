@@ -23,9 +23,7 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
     private Cliente clienteCreado;
     private boolean editMode = false;
     private Cliente editingCliente = null;
-
-    // callback que invocaremos cuando se cree el cliente (puede ser null)
-    private Consumer<Cliente> onClienteCreated;
+    private Consumer<Cliente> onClienteCreated; // callback que invocaremos cuando se cree el cliente (puede ser null)
 
     public Frm_Cliente() {
         initComponents();
@@ -57,7 +55,7 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
     private void configureFrame() {
         this.setClosable(true);
         this.setResizable(false);
-        this.setTitle("Registrar Cliente");
+        this.setTitle("Modificar Cliente");
     }
 
     /**
@@ -287,8 +285,15 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
         c.setRuc(ruc.isEmpty() ? null : ruc);
         c.setTelefono(telefono.isEmpty() ? null : telefono);
 
-        // VALIDAR A TRAVÉS DEL CONTROLLER (no confundir con lanzar excepción)
-        ValidationResult vr = clienteController.validateForType(c, tipo);
+        // VALIDAR A TRAVÉS DEL CONTROLLER usando existingId si estamos en editMode
+        ValidationResult vr;
+        if (editMode && editingCliente != null) {
+            // llamamos a la sobrecarga que acepta existingId para evitar falsos positivos de unicidad
+            vr = clienteController.validateForType(c, tipo, editingCliente.getId_cliente());
+        } else {
+            vr = clienteController.validateForType(c, tipo);
+        }
+
         if (!vr.isOk()) {
             JOptionPane.showMessageDialog(this, vr.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
             LOGGER.log(Level.INFO, "Validación cliente fallida: {0}", vr.getMessage());
@@ -314,11 +319,12 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
                     JOptionPane.showMessageDialog(this, "No se pudo crear cliente.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                // edición: preservar id
+                // edición: preservar id en el objeto antes de actualizar DAO
                 c.setId_cliente(editingCliente.getId_cliente());
+
                 boolean ok = clienteController.actualizarCliente(c, tipo);
                 if (ok) {
-                    JOptionPane.showMessageDialog(this, "Cliente actualizado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Cliente Actualizado Correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                     if (onClienteCreated != null) {
                         try {
                             onClienteCreated.accept(c);
@@ -328,7 +334,7 @@ public class Frm_Cliente extends javax.swing.JInternalFrame {
                     }
                     this.dispose();
                 } else {
-                    JOptionPane.showMessageDialog(this, "No se pudo actualizar cliente.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "No Se Pudo Actualizar Cliente.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } catch (IllegalArgumentException ex) {

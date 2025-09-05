@@ -7,7 +7,6 @@ import util.validation.ValidationResult;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Collections;
 
 public class ClienteController {
@@ -19,12 +18,26 @@ public class ClienteController {
 
     /**
      * Método que expone la validación sin lanzar excepción. Útil para la UI.
+     * (versión para creación / validación genérica)
      */
     public ValidationResult validateForType(Cliente c, String tipo) {
         try {
             return validator.validateForType(c, tipo);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Excepción en validateForType", ex);
+            return ValidationResult.fail("Error inesperado en validación.");
+        }
+    }
+
+    /**
+     * Sobrecarga de la validación que acepta existingId: si existingId != null
+     * las comprobaciones de unicidad ignorarán ese id (útil para edición).
+     */
+    public ValidationResult validateForType(Cliente c, String tipo, Integer existingId) {
+        try {
+            return validator.validateForType(c, tipo, existingId);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Excepción en validateForType(existingId)", ex);
             return ValidationResult.fail("Error inesperado en validación.");
         }
     }
@@ -68,15 +81,21 @@ public class ClienteController {
     }
 
     /**
-     * Actualiza un cliente: valida y luego llama a DAO. Retorna true si
-     * actualizó. Lanza IllegalArgumentException si la validación falla.
+     * Actualiza un cliente: valida (ignorando el mismo id para unicidad) y
+     * luego llama a DAO. Retorna true si actualizó. Lanza
+     * IllegalArgumentException si la validación falla.
      */
     public boolean actualizarCliente(Cliente c, String tipo) {
-        // validar con validator (reutiliza validateForType)
-        ValidationResult r = validator.validateForType(c, tipo);
+        if (c == null || c.getId_cliente() <= 0) {
+            throw new IllegalArgumentException("Cliente inválido para actualizar.");
+        }
+
+        // Validar usando existingId = id del cliente (evita falsos positivos en unicidad)
+        ValidationResult r = validator.validateForType(c, tipo, c.getId_cliente());
         if (!r.isOk()) {
             throw new IllegalArgumentException(r.getMessage());
         }
+
         boolean ok = dao.actualizarCliente(c);
         if (!ok) {
             LOGGER.log(Level.WARNING, "DAO no actualizó cliente: {0}", c);
@@ -91,7 +110,7 @@ public class ClienteController {
         try {
             return dao.eliminarClientePorId(idCliente);
         } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Error eliminarCliente", ex);
+            LOGGER.log(Level.SEVERE, "Error eliminar Cliente", ex);
             return false;
         }
     }

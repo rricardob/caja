@@ -59,6 +59,101 @@ public class ClienteDAO {
         return existsQuery(SQL_EXISTS_BY_TELEFONO, tel);
     }
 
+    public boolean existsByNombreExceptId(String nombre, int idExcept) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT 1 FROM clientes WHERE nombre_completo = ? AND id_cliente <> ? LIMIT 1";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, nombre);
+            pst.setInt(2, idExcept);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "existsByNombreExceptId fallo: {0}", e.toString());
+            LOGGER.log(Level.FINE, "Detalle", e);
+            return false;
+        }
+    }
+
+    public boolean existsByDireccionExceptId(String direccion, int idExcept) {
+        if (direccion == null || direccion.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT 1 FROM clientes WHERE direccion = ? AND id_cliente <> ? LIMIT 1";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, direccion);
+            pst.setInt(2, idExcept);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "existsByDireccionExceptId fallo: {0}", e.toString());
+            LOGGER.log(Level.FINE, "Detalle", e);
+            return false;
+        }
+    }
+
+    public boolean existsByDocExceptId(String doc, int idExcept) {
+        if (doc == null || doc.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT 1 FROM clientes WHERE doc_identidad = ? AND id_cliente <> ? LIMIT 1";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, doc);
+            pst.setInt(2, idExcept);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "existsByDocExceptId fallo: {0}", e.toString());
+            LOGGER.log(Level.FINE, "Detalle", e);
+            return false;
+        }
+    }
+
+    public boolean existsByRucExceptId(String ruc, int idExcept) {
+        if (ruc == null || ruc.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT 1 FROM clientes WHERE ruc = ? AND id_cliente <> ? LIMIT 1";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, ruc);
+            pst.setInt(2, idExcept);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "existsByRucExceptId fallo: {0}", e.toString());
+            LOGGER.log(Level.FINE, "Detalle", e);
+            return false;
+        }
+    }
+
+    public boolean existsByTelefonoExceptId(String tel, int idExcept) {
+        if (tel == null || tel.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT 1 FROM clientes WHERE telefono = ? AND id_cliente <> ? LIMIT 1";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setString(1, tel);
+            pst.setInt(2, idExcept);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "existsByTelefonoExceptId fallo: {0}", e.toString());
+            LOGGER.log(Level.FINE, "Detalle", e);
+            return false;
+        }
+    }
+
     /**
      * Busca un cliente por su identificador (doc o ruc)
      */

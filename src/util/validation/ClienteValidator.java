@@ -28,7 +28,18 @@ public class ClienteValidator {
     private static final int ADDR_MIN = 10;
     private static final int ADDR_MAX = 200;
 
+    /**
+     * Versión para creación (sin existingId). Mantiene compatibilidad.
+     */
     public ValidationResult validateForType(Cliente c, String tipo) {
+        return validateForType(c, tipo, null);
+    }
+
+    /**
+     * Validación general. Si existingId != null, las comprobaciones de unicidad
+     * ignoran ese id (usado para edición).
+     */
+    public ValidationResult validateForType(Cliente c, String tipo, Integer existingId) {
         if (c == null) {
             return ValidationResult.fail("Cliente nulo.");
         }
@@ -47,7 +58,10 @@ public class ClienteValidator {
         if (!NAME_PATTERN.matcher(nombre).matches()) {
             return ValidationResult.fail("Nombre contiene caracteres inválidos. Sólo letras, números, espacios y - . /");
         }
-        if (dao.existsByNombre(nombre)) {
+        boolean nameExists = (existingId == null)
+                ? dao.existsByNombre(nombre)
+                : dao.existsByNombreExceptId(nombre, existingId);
+        if (nameExists) {
             return ValidationResult.fail("El nombre ya está registrado.");
         }
 
@@ -65,7 +79,10 @@ public class ClienteValidator {
         if (!ADDR_PATTERN.matcher(direccion).matches()) {
             return ValidationResult.fail("Dirección contiene caracteres inválidos. Sólo letras, números, espacios y - . /");
         }
-        if (dao.existsByDireccion(direccion)) {
+        boolean dirExists = (existingId == null)
+                ? dao.existsByDireccion(direccion)
+                : dao.existsByDireccionExceptId(direccion, existingId);
+        if (dirExists) {
             return ValidationResult.fail("La dirección ya está registrada.");
         }
 
@@ -75,7 +92,10 @@ public class ClienteValidator {
             if (!DNI_PATTERN.matcher(doc).matches()) {
                 return ValidationResult.fail("DNI inválido. Debe tener 8 dígitos numéricos.");
             }
-            if (dao.existsByDoc(doc)) {
+            boolean docExists = (existingId == null)
+                    ? dao.existsByDoc(doc)
+                    : dao.existsByDocExceptId(doc, existingId);
+            if (docExists) {
                 return ValidationResult.fail("El DNI ya está registrado.");
             }
 
@@ -85,7 +105,10 @@ public class ClienteValidator {
                 if (!PHONE_PATTERN.matcher(tel).matches()) {
                     return ValidationResult.fail("Teléfono inválido. Debe tener 9 dígitos numéricos.");
                 }
-                if (dao.existsByTelefono(tel)) {
+                boolean telExists = (existingId == null)
+                        ? dao.existsByTelefono(tel)
+                        : dao.existsByTelefonoExceptId(tel, existingId);
+                if (telExists) {
                     return ValidationResult.fail("El teléfono ya está registrado.");
                 }
             }
@@ -94,7 +117,10 @@ public class ClienteValidator {
             if (!RUC_PATTERN.matcher(ruc).matches()) {
                 return ValidationResult.fail("RUC inválido. Debe tener 11 dígitos numéricos.");
             }
-            if (dao.existsByRuc(ruc)) {
+            boolean rucExists = (existingId == null)
+                    ? dao.existsByRuc(ruc)
+                    : dao.existsByRucExceptId(ruc, existingId);
+            if (rucExists) {
                 return ValidationResult.fail("El RUC ya está registrado.");
             }
 
@@ -104,7 +130,10 @@ public class ClienteValidator {
                 if (!PHONE_PATTERN.matcher(tel).matches()) {
                     return ValidationResult.fail("Teléfono inválido. Debe tener 9 dígitos numéricos.");
                 }
-                if (dao.existsByTelefono(tel)) {
+                boolean telExists = (existingId == null)
+                        ? dao.existsByTelefono(tel)
+                        : dao.existsByTelefonoExceptId(tel, existingId);
+                if (telExists) {
                     return ValidationResult.fail("El teléfono ya está registrado.");
                 }
             }

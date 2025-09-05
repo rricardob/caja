@@ -1,13 +1,13 @@
 package vista;
 
 import controlador.CajaController;
+import modelo.SesionCaja;
+import modelo.SessionManager;
 import java.beans.PropertyVetoException;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import modelo.SesionCaja;
-import modelo.SessionManager;
 import util.ViewUtil;
 
 public class menu extends javax.swing.JFrame {
@@ -293,12 +293,13 @@ public class menu extends javax.swing.JFrame {
 
     private void configurarItemsMenuClientes() {
         JMenu clientes = new JMenu("Clientes");
-        JMenuItem registroClientes = new JMenuItem("Registro Clientes");
 
-        // Al hacer click abrir Frm_Cliente
-        registroClientes.addActionListener(e -> abrirCliente());
+        // Ya no agregamos "Registro Clientes" aquí. El registro se abrirá desde Frm_Clientes -> Crear
+        JMenuItem gestionClientes = new JMenuItem("Gestionar Clientes");
+        gestionClientes.addActionListener(e -> abrirGestionClientes());
 
-        clientes.add(registroClientes);
+        clientes.add(gestionClientes);
+
         menu_1.add(clientes);
     }
 
@@ -355,6 +356,30 @@ public class menu extends javax.swing.JFrame {
 
         // si no existe, la creamos
         Frm_Cliente frm = new Frm_Cliente();
+        frm.pack();
+        desktop.add(frm);
+        frm.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm);
+    }
+
+    private void abrirGestionClientes() {
+        // buscamos si ya existe instancia abierta
+        for (javax.swing.JInternalFrame f : desktop.getAllFrames()) {
+            if (f instanceof Frm_Clientes) {
+                try {
+                    f.setIcon(false);
+                    f.setSelected(true);
+                    f.toFront();
+                } catch (PropertyVetoException ex) {
+                    // no hacemos nada crítico, solo logueamos
+                    System.err.println("No se pudo seleccionar Frm_Clientes: " + ex.getMessage());
+                }
+                return;
+            }
+        }
+
+        // si no existe, la creamos y la mostramos
+        Frm_Clientes frm = new Frm_Clientes();
         frm.pack();
         desktop.add(frm);
         frm.setVisible(true);
