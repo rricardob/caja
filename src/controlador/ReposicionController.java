@@ -1,6 +1,9 @@
 package controlador;
 
 import dao.ReposicionDAO;
+import java.sql.Date;
+import java.sql.SQLException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import modelo.Reposicion;
@@ -32,4 +35,12 @@ public class ReposicionController {
         }
     }
 
+    public List<Reposicion> obtenerReposiciones(Date fechaInicio, Date fechaFin){
+        try {
+            return this.reposicionDAO.recuperarReposiciones(fechaInicio, fechaFin);
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Excepcionen en obtenerReposiciones", ex);
+        }
+        return null;
+    }
 }

@@ -98,7 +98,7 @@ public class login extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
-        btn_login.setBackground(Color.RED); 
+        btn_login.setBackground(Color.RED);
         Usuario user = usuarioController.login(txt_usuario.getText(), txt_password.getText());
         if (user == null) {
             JOptionPane.showMessageDialog(null, "Datos Incorrectos!");
@@ -141,7 +141,7 @@ public class login extends javax.swing.JFrame {
         }
         //</editor-fold>
         //</editor-fold>
-        
+
         try {
             // Establece el Look and Feel de Metal
             UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
@@ -166,9 +166,9 @@ public class login extends javax.swing.JFrame {
     private javax.swing.JTextField txt_usuario;
     // End of variables declaration//GEN-END:variables
 
-    private void loadPlaceHolders(){
-       new TextPrompt("Ingresa tu Usuario", this.txt_usuario); 
-       new TextPrompt("Ingresa tu Contraseña", this.txt_password); 
+    private void loadPlaceHolders() {
+        new TextPrompt("Ingresa tu Usuario", this.txt_usuario);
+        new TextPrompt("Ingresa tu Contraseña", this.txt_password);
     }
-    
+
 }
