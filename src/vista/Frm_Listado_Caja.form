@@ -70,9 +70,11 @@
                   <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="dc_fecha_fin" min="-2" pref="113" max="-2" attributes="0"/>
-                  <EmptySpace pref="108" max="32767" attributes="0"/>
+                  <EmptySpace type="separate" max="-2" attributes="0"/>
                   <Component id="btn_buscar" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace min="-2" pref="79" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="34" max="-2" attributes="0"/>
+                  <Component id="btn_reporte" pref="123" max="32767" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -81,7 +83,10 @@
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace min="-2" pref="14" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="1" attributes="0">
-                      <Component id="btn_buscar" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="btn_buscar" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="btn_reporte" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
                       <Component id="dc_fecha_inicio" min="-2" max="-2" attributes="0"/>
                       <Component id="lbl_fecha" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
@@ -114,6 +119,14 @@
           </Properties>
         </Component>
         <Component class="com.toedter.calendar.JDateChooser" name="dc_fecha_fin">
+        </Component>
+        <Component class="javax.swing.JButton" name="btn_reporte">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Reporte"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btn_reporteActionPerformed"/>
+          </Events>
         </Component>
       </SubComponents>
     </Container>
