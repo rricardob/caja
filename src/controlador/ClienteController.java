@@ -1,6 +1,7 @@
 package controlador;
 
 import dao.ClienteDAO;
+import java.util.ArrayList;
 import modelo.Cliente;
 import util.validation.ClienteValidator;
 import util.validation.ValidationResult;
@@ -15,6 +16,9 @@ public class ClienteController {
 
     private final ClienteDAO dao = new ClienteDAO();
     private final ClienteValidator validator = new ClienteValidator();
+
+    // Nombre del cliente "estático" que usamos para reposiciones.
+    private static final String REPOSICION_CLIENT_NAME = "USUARIO_REPOSICION";
 
     /**
      * Método que expone la validación sin lanzar excepción. Útil para la UI.
@@ -67,7 +71,7 @@ public class ClienteController {
     public Cliente buscarPorIdentificador(String id) {
         return dao.buscarPorIdentificador(id);
     }
-    
+
     public Cliente buscarPorNombre(String nombre) {
         return dao.buscarPorNombre(nombre);
     }
@@ -77,7 +81,31 @@ public class ClienteController {
      */
     public List<Cliente> listarClientes() {
         try {
-            return dao.listarTodos();
+            List<Cliente> all = dao.listarTodos();
+            if (all == null || all.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            // Intentamos obtener el cliente estático por nombre (si existe)
+            Cliente repoClient = dao.buscarPorNombre(REPOSICION_CLIENT_NAME);
+            Integer repoId = (repoClient != null) ? repoClient.getId_cliente() : null;
+
+            // Filtrar lista en memoria (muy barato para listas no gigantescas)
+            List<Cliente> filtered = new ArrayList<>(all.size());
+            for (Cliente c : all) {
+                if (c == null) {
+                    continue;
+                }
+                // Excluir por id si encontramos registro; además excluir si nombre coincide por si acaso
+                boolean isRepoById = (repoId != null && c.getId_cliente() == repoId);
+                boolean isRepoByName = (c.getNombre_completo() != null && c.getNombre_completo().equalsIgnoreCase(REPOSICION_CLIENT_NAME));
+                if (isRepoById || isRepoByName) {
+                    // saltar - no agregar a filtered
+                    continue;
+                }
+                filtered.add(c);
+            }
+            return filtered;
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error listarClientes", ex);
             return Collections.emptyList();
