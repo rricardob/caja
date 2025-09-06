@@ -22,6 +22,9 @@ public class IngresoController {
     private final TransaccionDAO transaccionDAO;
     private final SessionManager session;
 
+    // Nombre del cliente estático de reposiciones
+    private static final String REPOSICION_CLIENT_NAME = "USUARIO_REPOSICION";
+
     public IngresoController() {
         this.clienteDAO = new ClienteDAO();
         this.cajaDAO = new SesionCajaDAO();
@@ -91,7 +94,21 @@ public class IngresoController {
         if (idSesion == -1) {
             return java.util.Collections.emptyList();
         }
-        return transaccionDAO.listarIngresosPorSesion(idSesion);
+
+        try {
+            // Intentar localizar el cliente estático por nombre
+            Cliente repoClient = clienteDAO.buscarPorNombre(REPOSICION_CLIENT_NAME);
+            if (repoClient != null && repoClient.getId_cliente() > 0) {
+                // Llamar al DAO que excluye por id_cliente
+                return transaccionDAO.listarIngresosPorSesionExcludingClient(idSesion, repoClient.getId_cliente());
+            } else {
+                // Si no existe el cliente estático, usar el método normal
+                return transaccionDAO.listarIngresosPorSesion(idSesion);
+            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error listarIngresosPorSesionActiva", ex);
+            return java.util.Collections.emptyList();
+        }
     }
 
     /**

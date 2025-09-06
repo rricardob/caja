@@ -183,6 +183,52 @@ public class TransaccionDAO {
         return lista;
     }
 
+    public List<Transaccion> listarIngresosPorSesionExcludingClient(int idSesion, int excludeClientId) {
+        List<Transaccion> lista = new ArrayList<>();
+        String sql = "SELECT t.id_transaccion, t.id_sesion, t.id_usuario, t.id_tipo, t.id_cliente, t.importe, t.descripcion, t.fecha_creacion, "
+                + "c.nombre_completo, c.doc_identidad, c.direccion, c.ruc "
+                + "FROM transacciones t "
+                + "JOIN clientes c ON t.id_cliente = c.id_cliente "
+                + "WHERE t.id_sesion = ? AND t.id_tipo = ? AND t.id_cliente <> ? "
+                + "ORDER BY t.fecha_creacion DESC";
+        try (Connection conn = ConexionDB.obtenerConexion()) {
+            int idTipo = obtenerIdTipoIngreso(conn);
+            if (idTipo == -1) {
+                return lista;
+            }
+            try (PreparedStatement pst = conn.prepareStatement(sql)) {
+                pst.setInt(1, idSesion);
+                pst.setInt(2, idTipo);
+                pst.setInt(3, excludeClientId);
+                try (ResultSet rs = pst.executeQuery()) {
+                    while (rs.next()) {
+                        Transaccion t = new Transaccion();
+                        t.setId_transaccion(rs.getInt("id_transaccion"));
+                        t.setId_sesion(rs.getInt("id_sesion"));
+                        t.setId_usuario(rs.getInt("id_usuario"));
+                        t.setId_tipo(rs.getInt("id_tipo"));
+                        t.setId_cliente(rs.getInt("id_cliente"));
+                        t.setImporte(rs.getBigDecimal("importe"));
+                        t.setDescripcion(rs.getString("descripcion"));
+                        t.setFecha_creacion(rs.getTimestamp("fecha_creacion"));
+
+                        // Campos cliente (transitorios)
+                        t.setNombre_completo(rs.getString("nombre_completo"));
+                        t.setDoc_identidad(rs.getString("doc_identidad"));
+                        t.setRuc(rs.getString("ruc"));
+                        t.setDireccion(rs.getString("direccion"));
+
+                        lista.add(t);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error listarIngresosPorSesionExcludingClient", ex);
+            // devuelve lista (posiblemente vacía)
+        }
+        return lista;
+    }
+
     /**
      * Obtiene una transaccion (tipo ingreso) por su id, incluyendo datos del
      * cliente. Retorna null si no existe o en error.
