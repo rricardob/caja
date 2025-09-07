@@ -176,7 +176,7 @@ public class Frm_Cierre_caja extends javax.swing.JInternalFrame {
         int respuesta = JOptionPane.showConfirmDialog(this, "¿Esta seguro que desea cerrar la caja?",
                 "Confirmación", JOptionPane.YES_NO_OPTION);
         if (respuesta == JOptionPane.YES_OPTION) {
-            this.cajaController.cerrarSesion(session.getIdSesionCaja()); 
+            this.cajaController.cerrarSesion(session.getIdSesionCaja(), null); 
                     JOptionPane.showMessageDialog(this, "La caja fue cerrada correctamente!", "Sistema", JOptionPane.INFORMATION_MESSAGE);
                     this.dispose();
         }

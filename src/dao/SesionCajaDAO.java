@@ -22,14 +22,14 @@ public class SesionCajaDAO {
      */
     public SesionCaja obtenerSesionActivaDelDia(Integer idUsuario, String fecha) {
         String sql = "SELECT * FROM sesiones_caja "
-                + "WHERE id_usuario = ? AND DATE(hora_inicio) = ? AND estado = 'ABIERTA' "
+                + "WHERE estado = 'ABIERTA' "
                 + "ORDER BY numero_sesion_dia DESC LIMIT 1";
 
         try (Connection conn = ConexionDB.obtenerConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, idUsuario);
-            stmt.setString(2, fecha);
+            //stmt.setInt(1, idUsuario);
+            //stmt.setString(2, fecha);
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -44,14 +44,13 @@ public class SesionCajaDAO {
 
     public boolean existeSesionAbiertaV2(Integer idUsuario, String fecha) {
         String sql = "SELECT id_sesion FROM sesiones_caja "
-                + "WHERE id_usuario = ? AND DATE(hora_inicio) = ? AND estado = 'ABIERTA' "
-                + "LIMIT 1";
+                + "WHERE estado = 'ABIERTA' LIMIT 1";
 
         try (Connection conn = ConexionDB.obtenerConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, idUsuario);
-            stmt.setString(2, fecha);
+            //stmt.setInt(1, idUsuario);
+            //stmt.setString(2, fecha);
 
             ResultSet rs = stmt.executeQuery();
             boolean existe = rs.next();

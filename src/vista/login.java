@@ -1,22 +1,34 @@
 package vista;
 
+import controlador.CajaController;
 import controlador.UsuarioController;
 import java.awt.Color;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import modelo.SesionCaja;
+import modelo.SessionManager;
 import modelo.Usuario;
 import util.TextPrompt;
 
 public class login extends javax.swing.JFrame {
 
-    UsuarioController usuarioController;
+    private final UsuarioController usuarioController;
+    private final CajaController cajaController;
+    private final SessionManager session;
 
     public login() {
         initComponents();
-        usuarioController = new UsuarioController();
+        this.usuarioController = new UsuarioController();
+        this.cajaController = new CajaController();
+        this.session = SessionManager.getInstance();
         this.setLocationRelativeTo(null);
         loadPlaceHolders();
+        verificarCajaNoCerrada();
     }
 
     @SuppressWarnings("unchecked")
@@ -169,6 +181,41 @@ public class login extends javax.swing.JFrame {
     private void loadPlaceHolders() {
         new TextPrompt("Ingresa tu Usuario", this.txt_usuario);
         new TextPrompt("Ingresa tu Contraseña", this.txt_password);
+    }
+
+    private void verificarCajaNoCerrada() {
+        System.out.println("====VERIFICANDO SI SE DEBE CERRAR CAJA=====");
+        boolean estadoCaja = cajaController.puedeAperturarSesion(session.getIdUsuario());
+        if (estadoCaja) {
+            System.out.println("====CAJA ABIERTA====");
+            SesionCaja sesionCaja = this.cajaController.obtenerSesionActivaActual(session.getIdUsuario());
+
+            LocalDateTime horaInicioSesion = sesionCaja.getHoraInicio().toLocalDateTime();
+            LocalDateTime ahora = LocalDateTime.now();
+
+            LocalDate fechaInicio = horaInicioSesion.toLocalDate();
+            LocalDate fechaActual = ahora.toLocalDate();
+
+            System.out.println("Condición: ¿Es de un día anterior? " + fechaInicio.isBefore(fechaActual));
+            if (fechaInicio.isBefore(fechaActual)) { // Si la sesión es de un día anterior
+                System.out.println("====CERRANDO CAJA DE UN DIA ANTERIOR====");
+
+                // Definir la hora de cierre al final del día de apertura (23:59:59)
+                LocalDateTime fechaHoraCierre = horaInicioSesion
+                        .withHour(23)
+                        .withMinute(59)
+                        .withSecond(59)
+                        .withNano(0); // Elimina nanosegundos para precisión
+
+                // Convertir a Timestamp
+                Timestamp timestamp = Timestamp.valueOf(fechaHoraCierre);
+
+                this.cajaController.cerrarSesion(sesionCaja.getIdSesion(), timestamp);
+            }
+        } else {
+            System.out.println("====NO HAY CAJA ABIERTA PENDIENTE=====");
+        }
+
     }
 
 }

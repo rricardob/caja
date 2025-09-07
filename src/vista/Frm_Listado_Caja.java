@@ -2,28 +2,29 @@ package vista;
 
 import controlador.CajaController;
 import dao.UsuarioDAO;
-import java.io.File;
 import java.io.InputStream;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.print.PrintService;
+import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import modelo.SesionCaja;
 import modelo.SessionManager;
+import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.data.JRTableModelDataSource;
 import net.sf.jasperreports.view.JasperViewer;
+import util.Constantes;
+import util.DateUtil;
 import vista.dataTableModel.SesionCajaTableModel;
 
 public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
@@ -189,7 +190,7 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
 
     private void btn_reporteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_reporteActionPerformed
 
-        reporte();
+        reporte2();
         /*try {
             List<SesionCaja> sesionCajas = this.cajaController.obtenerHistorial(this.session.getIdUsuario(), fechaInicio, fechaFin);
 
@@ -224,8 +225,8 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
             // Compilar el reporte desde el InputStream
             JasperReport report = JasperCompileManager.compileReport(jrxmlStream);
 
-            JasperCompileManager.compileReportToFile("src/recursos/rpt_ingreso_egreso.jrxml",
-                    "src/recursos/rpt_ingreso_egreso.jasper");
+            JasperCompileManager.compileReportToFile("src/recursos/rpt_ingresos_egresos.jrxml",
+                    "src/recursos/rpt_ingresos_egresos.jasper");
 
             List<SesionCaja> sesionCajas = this.cajaController.obtenerHistorial(this.session.getIdUsuario(), fechaInicio, fechaFin);
 
@@ -273,6 +274,47 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
         columnModel.getColumn(5).setCellRenderer(rightRenderer);
 
         tb_sesiones_caja.setAutoCreateRowSorter(true);
+    }
+
+    public void reporte2() {
+        try {
+            // Tu código para obtener datos y parámetros (sesionCajas, param)
+            // ...
+            List<SesionCaja> sesionCajas = this.cajaController.obtenerHistorial(this.session.getIdUsuario(), fechaInicio, fechaFin);
+            if (sesionCajas == null || sesionCajas.size() == 0) {
+                JOptionPane.showMessageDialog(this, "No Hay registros para generar el PDF");
+            }
+
+            Map<String, Object> parameters = new HashMap<String, Object>();
+            String[] fechas = DateUtil.obtenerFechaFormateadaTituloReporte(fechaInicio, fechaFin);
+            parameters.put("FECHA_INICIAL", fechas[0]);
+            parameters.put("FECHA_FINAL", fechas[1]);
+            parameters.put("RUTA_RECURSOS", Constantes.RUTA_RECURSOS);
+
+            // Obtener el archivo JRXML como un InputStream
+            InputStream jrxmlStream = this.getClass().getResourceAsStream("/recursos/rpt_ingresos_egresos.jrxml");
+
+            if (jrxmlStream == null) {
+                System.err.println("Error: El archivo del reporte JRXML no se encontró. Verifica la ruta.");
+                return;
+            }
+
+            // Compilar el JRXML en un objeto JasperReport en memoria
+            JasperReport jasperReport = JasperCompileManager.compileReport(jrxmlStream);
+
+            //
+            JREmptyDataSource dataSource = new JREmptyDataSource();
+
+            // Llenar el reporte
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+
+            // Mostrar el reporte
+            JasperViewer.viewReport(jasperPrint, false);
+
+        } catch (JRException ex) {
+            System.err.println("Error al generar el reporte: " + ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
