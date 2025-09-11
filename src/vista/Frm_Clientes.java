@@ -137,7 +137,7 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
             tableModel.removeAt(modelRow);
             JOptionPane.showMessageDialog(this, "Cliente Eliminado.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } else {
-            JOptionPane.showMessageDialog(this, "No se pudo eliminar cliente. Puede haber restricciones en la base.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "El cliente ya está siendo utilizado en otro proceso", "Advertencia", JOptionPane.ERROR_MESSAGE);
         }
     }
 
