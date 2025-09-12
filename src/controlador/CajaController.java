@@ -65,7 +65,7 @@ public class CajaController {
         return nuevaSesion;
     }
 
-    public SesionCaja cerrarSesion(Integer idSesion) {
+    public SesionCaja cerrarSesion(Integer idSesion, Timestamp fechaCierre) {
         SesionCaja sesion = sesionCajaDAO.obtenerSesionPorId(idSesion);
         if (sesion == null) {
             throw new RuntimeException("❌ ERROR: Sesión no encontrada con ID: " + idSesion);
@@ -83,7 +83,12 @@ public class CajaController {
         // Calcular diferencia del turno
         BigDecimal diferenciaTurno = saldoFinalCalculado.subtract(sesion.getSaldoInicial());
 
-        sesion.setHoraFin(new Timestamp(System.currentTimeMillis()));
+        if (fechaCierre == null) {
+            sesion.setHoraFin(new Timestamp(System.currentTimeMillis()));
+        }else {
+            sesion.setHoraFin(fechaCierre);
+        }
+        
         sesion.setSaldoFinal(saldoFinalCalculado);
         sesion.setEstado("CERRADA");
         sesion.setDiferenciaTurno(diferenciaTurno);
