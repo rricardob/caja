@@ -15,6 +15,7 @@ public class SessionManager {
     private int idRol;
     private String nombreRol;
     private Set<String> permisosVentanas;
+    private Integer idSesionCaja;
     
     private SessionManager() {
         permisosVentanas = new HashSet<>();
@@ -41,6 +42,7 @@ public class SessionManager {
         this.idRol = 0;
         this.nombreRol = null;
         this.permisosVentanas.clear();
+        this.idSesionCaja = 0;
     }
     
     // Métodos para manejar permisos
@@ -58,9 +60,16 @@ public class SessionManager {
     public int getIdRol() { return idRol; }
     public String getNombreRol() { return nombreRol; }
     public Set<String> getPermisosVentanas() { return permisosVentanas; }
+    public Integer getIdSesionCaja() { return idSesionCaja; }
     
     // Método para verificar si hay sesión activa
     public boolean sesionActiva() {
         return idUsuario > 0 && nombreUsuario != null;
     }
+
+    public void setIdSesionCaja(Integer idSesionCaja) {
+        this.idSesionCaja = idSesionCaja;
+    }
+    
+    
 }
