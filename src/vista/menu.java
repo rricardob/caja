@@ -43,6 +43,7 @@ public class menu extends javax.swing.JFrame {
         jMenuItem3 = new javax.swing.JMenuItem();
         menu_2 = new javax.swing.JMenu();
         jMenuItem4 = new javax.swing.JMenuItem();
+        menu_3 = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -62,7 +63,7 @@ public class menu extends javax.swing.JFrame {
         lbl_username.setText("xxxxxxxx");
         jToolBar1.add(lbl_username);
 
-        menu_1.setText("Sistema");
+        menu_1.setText("Mantenimiento");
 
         jMenuItem1.setText("Clientes");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
@@ -101,6 +102,9 @@ public class menu extends javax.swing.JFrame {
         menu_2.add(jMenuItem4);
 
         menu_bar.add(menu_2);
+
+        menu_3.setText("Caja");
+        menu_bar.add(menu_3);
 
         setJMenuBar(menu_bar);
 
@@ -259,6 +263,7 @@ public class menu extends javax.swing.JFrame {
             //menu_1.add(reposicion);
             //menu_1.add(egreso);
             menu_bar.add(menu_1);
+            menu_bar.add(menu_3);
         }
     }
 
@@ -275,7 +280,6 @@ public class menu extends javax.swing.JFrame {
     }
 
     private void configurarItemsMenuCaja() {
-        JMenu caja = new JMenu("Caja");
         JMenuItem listadoCaja = new JMenuItem("Listado de Caja");
         JMenuItem aperturaCaja = new JMenuItem("Apertura de Caja");
         JMenuItem cierreCaja = new JMenuItem("Cierre de Caja");
@@ -284,11 +288,10 @@ public class menu extends javax.swing.JFrame {
         aperturaCaja.addActionListener(e -> abrirAperturaCaja());
         cierreCaja.addActionListener(e -> abrirCierreCaja());
 
-        caja.add(listadoCaja);
-        caja.add(aperturaCaja);
-        caja.add(cierreCaja);
+        menu_3.add(listadoCaja);
+        menu_3.add(aperturaCaja);
+        menu_3.add(cierreCaja);
 
-        menu_1.add(caja);
     }
 
     private void configurarItemsMenuClientes() {
@@ -462,6 +465,7 @@ public class menu extends javax.swing.JFrame {
     private javax.swing.JLabel lbl_username;
     private javax.swing.JMenu menu_1;
     private javax.swing.JMenu menu_2;
+    private javax.swing.JMenu menu_3;
     private javax.swing.JMenuBar menu_bar;
     // End of variables declaration//GEN-END:variables
 

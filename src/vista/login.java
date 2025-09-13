@@ -3,11 +3,14 @@ package vista;
 import controlador.CajaController;
 import controlador.UsuarioController;
 import java.awt.Color;
+import java.awt.event.KeyEvent;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
+import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import modelo.SesionCaja;
@@ -49,6 +52,11 @@ public class login extends javax.swing.JFrame {
                 txt_passwordActionPerformed(evt);
             }
         });
+        txt_password.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txt_passwordKeyPressed(evt);
+            }
+        });
 
         btn_login.setBackground(new java.awt.Color(255, 51, 51));
         btn_login.setForeground(new java.awt.Color(255, 255, 255));
@@ -66,7 +74,8 @@ public class login extends javax.swing.JFrame {
         jLabel2.setText("BIENVENIDO");
         jLabel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/assets/img/logo.png"))); // NOI18N
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/assets/img/logo_2.png"))); // NOI18N
 
         jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/assets/img/fondo_login_fluid_3.png"))); // NOI18N
 
@@ -79,12 +88,11 @@ public class login extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 65, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(txt_usuario)
-                                .addComponent(txt_password, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
+                            .addComponent(txt_usuario)
+                            .addComponent(txt_password, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(58, 58, 58))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(btn_login, javax.swing.GroupLayout.PREFERRED_SIZE, 225, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -94,9 +102,9 @@ public class login extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jLabel3)
             .addGroup(layout.createSequentialGroup()
-                .addGap(31, 31, 31)
+                .addGap(35, 35, 35)
                 .addComponent(jLabel1)
-                .addGap(64, 64, 64)
+                .addGap(60, 60, 60)
                 .addComponent(jLabel2)
                 .addGap(18, 18, 18)
                 .addComponent(txt_usuario, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -110,24 +118,18 @@ public class login extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
-        btn_login.setBackground(Color.RED);
-        Usuario user = usuarioController.login(txt_usuario.getText(), txt_password.getText());
-        if (user == null) {
-            JOptionPane.showMessageDialog(null, "Datos Incorrectos!");
-            return;
-        }
-
-        JOptionPane.showMessageDialog(null, "Bienvenido " + user.getNombre_completo());
-        menu.usuario = user.getNombre_completo();
-        menu.usuarioId = user.getId_usuario();
-        menu menu = new menu();
-        menu.setVisible(true);
-        this.dispose();
+        login();
     }//GEN-LAST:event_btn_loginActionPerformed
 
     private void txt_passwordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_passwordActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txt_passwordActionPerformed
+
+    private void txt_passwordKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txt_passwordKeyPressed
+        if (evt.getExtendedKeyCode() == KeyEvent.VK_ENTER) {
+            login();
+        }
+    }//GEN-LAST:event_txt_passwordKeyPressed
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
@@ -214,6 +216,72 @@ public class login extends javax.swing.JFrame {
             }
         } else {
             System.out.println("====NO HAY CAJA ABIERTA PENDIENTE=====");
+        }
+
+    }
+
+    public void login() {
+
+        Usuario user = null;
+        btn_login.setBackground(Color.RED);
+
+        if (this.txt_usuario.getText().equals("")) {
+            txt_usuario.requestFocusInWindow();
+
+        } else if (this.txt_password.getText().equals("")) {
+            txt_password.requestFocusInWindow();
+        } else {
+
+            user = usuarioController.login(txt_usuario.getText(), txt_password.getText());
+            if (user == null) {
+                JOptionPane.showMessageDialog(null, " LOS DATOS SON INCORRECTOS ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
+                return;
+            } else {
+                try {
+
+                    menu.usuario = user.getNombre_completo();
+                    menu.usuarioId = user.getId_usuario();
+
+                    // Crear diálogo de carga
+                    JDialog loadingDialog = new JDialog(this, "Cargando...", true);
+                    loadingDialog.setSize(200, 100);
+                    loadingDialog.setLocationRelativeTo(this);
+                    loadingDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+
+                    JProgressBar progressBar = new JProgressBar();
+                    progressBar.setIndeterminate(true);
+                    progressBar.setString("Cargando...");
+                    progressBar.setStringPainted(true);
+
+                    loadingDialog.add(progressBar);
+
+                    // Usar SwingWorker para manejar el retardo
+                    SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                        @Override
+                        protected Void doInBackground() throws Exception {
+                            // Simula carga de 3 segundos
+                            Thread.sleep(2000);
+                            return null;
+                        }
+
+                        @Override
+                        protected void done() {
+                            loadingDialog.dispose();
+                            menu menu = new menu();
+                            menu.setVisible(true);
+                            dispose(); // cerrar login
+                        }
+                    };
+
+                    worker.execute();
+                    loadingDialog.setVisible(true);
+
+                } catch (Exception ex) {
+                    System.out.print(ex.getMessage());
+
+                }
+            }
+
         }
 
     }
