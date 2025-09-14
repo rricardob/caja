@@ -8,8 +8,8 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -229,23 +229,20 @@ public class login extends javax.swing.JFrame {
 
                     // Crear diálogo de carga
                     JDialog loadingDialog = new JDialog(this, "Cargando...", true);
-                    loadingDialog.setSize(200, 100);
+                    loadingDialog.setSize(200, 200);
                     loadingDialog.setLocationRelativeTo(this);
                     loadingDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 
-                    JProgressBar progressBar = new JProgressBar();
-                    progressBar.setIndeterminate(true);
-                    progressBar.setString("Cargando...");
-                    progressBar.setStringPainted(true);
+             
 
-                    loadingDialog.add(progressBar);
-
+                    JLabel img = new JLabel(new javax.swing.ImageIcon(getClass().getResource("/assets/img/cargando4.gif")));
+                    loadingDialog.add(img);
                     // Usar SwingWorker para manejar el retardo
                     SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
                         @Override
                         protected Void doInBackground() throws Exception {
                             // Simula carga de 3 segundos
-                            Thread.sleep(2000);
+                            Thread.sleep(3000);
                             return null;
                         }
 
@@ -263,6 +260,7 @@ public class login extends javax.swing.JFrame {
 
                 } catch (Exception ex) {
                     System.out.print(ex.getMessage());
+                    ex.printStackTrace();
 
                 }
             }
