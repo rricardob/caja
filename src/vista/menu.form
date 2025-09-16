@@ -52,7 +52,7 @@
         </Menu>
         <Menu class="javax.swing.JMenu" name="menu_3">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Caja"/>
+            <Property name="text" type="java.lang.String" value="Operaciones"/>
           </Properties>
         </Menu>
       </SubComponents>
