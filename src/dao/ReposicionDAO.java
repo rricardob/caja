@@ -67,7 +67,7 @@ public class ReposicionDAO {
                 + "u.nombre_completo , r.fecha_aprobacion, r.aprobado_por, t.importe, t.descripcion \n"
                 + "from reposicionamientos r \n"
                 + "join transacciones t on t.id_transaccion = r.id_transaccion \n"
-                + "join usuarios u on u.id_usuario = t.id_usuario");
+                + "join usuario u on u.id_usuario = t.id_usuario");
 
         boolean hasFilters = false;
         if (fechaInicio != null || fechaFin != null) {
