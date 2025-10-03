@@ -168,17 +168,17 @@ public class menu extends javax.swing.JFrame {
 
         menu_bar.revalidate();
         menu_bar.repaint();
-        menu_bar.add(menu_1);
+        //menu_bar.add(menu_1);
     }
 
     private void configurarMenuTransacciones() {
         if (session.tienePermiso("transacciones")) {
             configurarItemsMenuIngresos();
             configurarItemsMenuEgresos();
-            //configurarItemsMenuReposiciones();
+            configurarItemsMenuReposiciones();
             configurarItemsMenuClientes();
             configurarItemsMenuCaja();
-            ConfigurarMenuItemSalir(menu_1);
+            //ConfigurarMenuItemSalir(menu_1);
             
             menu_bar.add(menu_1);
             menu_bar.add(menu_3);
@@ -231,14 +231,14 @@ public class menu extends javax.swing.JFrame {
         JMenuItem registroIngresos = new JMenuItem("Registro Ingresos");
         registroIngresos.addActionListener(e -> abrirIngreso());
         ingresos.add(registroIngresos);
-        menu_1.add(ingresos);
+        //menu_1.add(ingresos);
         menu_3.add(registroIngresos);
     }
 
     private void configurarItemsMenuEgresos() {
         JMenu egresos = new JMenu("Egresos");
 
-        menu_1.add(egresos);
+        //menu_1.add(egresos);
         JMenuItem registroEgresos = new JMenuItem("Registro Egresos");
         registroEgresos.addActionListener(e -> abrirEgreso());
         menu_3.add(registroEgresos);
