@@ -66,27 +66,12 @@ public class menu extends javax.swing.JFrame {
         menu_1.setText("Mantenimiento");
 
         jMenuItem1.setText("Clientes");
-        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem1ActionPerformed(evt);
-            }
-        });
         menu_1.add(jMenuItem1);
 
         jMenuItem2.setText("Tipos de Servicios");
-        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem2ActionPerformed(evt);
-            }
-        });
         menu_1.add(jMenuItem2);
 
         jMenuItem3.setText("Servicios");
-        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem3ActionPerformed(evt);
-            }
-        });
         menu_1.add(jMenuItem3);
 
         menu_bar.add(menu_1);
@@ -94,11 +79,6 @@ public class menu extends javax.swing.JFrame {
         menu_2.setText("Reportes");
 
         jMenuItem4.setText("Por Tipo");
-        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem4ActionPerformed(evt);
-            }
-        });
         menu_2.add(jMenuItem4);
 
         menu_bar.add(menu_2);
@@ -125,52 +105,6 @@ public class menu extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        Frm_Listado_Caja ingreso = new Frm_Listado_Caja();
-        ingreso.pack();
-        desktop.add(ingreso);
-        ingreso.setVisible(true);
-        ViewUtil.centerScreen(desktop, ingreso);
-    }//GEN-LAST:event_jMenuItem1ActionPerformed
-
-    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
-        /*Frm_Servicio servicio = new Frm_Servicio();
-        servicio.pack();
-        desktop.add(servicio);
-        servicio.setVisible(true);
-        int x = (desktop.getWidth() / 2) - servicio.getWidth() /2;
-        int y = (desktop.getHeight()/ 2) - servicio.getHeight() /2;
-        if (servicio.isShowing()) {
-            servicio.setLocation(x, y);
-        }*/
-    }//GEN-LAST:event_jMenuItem3ActionPerformed
-
-    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
-        /*FrmTipoServicio frmTipoServicio = new FrmTipoServicio();
-        frmTipoServicio.pack();
-        desktop.add(frmTipoServicio);
-        frmTipoServicio.setVisible(true);
-        int x = (desktop.getWidth() / 2) - frmTipoServicio.getWidth() /2;
-        int y = (desktop.getHeight()/ 2) - frmTipoServicio.getHeight() /2;
-        if (frmTipoServicio.isShowing()) {
-            frmTipoServicio.setLocation(x, y);
-        }*/
-    }//GEN-LAST:event_jMenuItem2ActionPerformed
-
-    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
-        /*Frm_Main_Venta frm_Main_Venta = new Frm_Main_Venta();
-        frm_Main_Venta.pack();
-        frm_Main_Venta.setearUsuario(nombre, apellido, usuarioId);
-        desktop.add(frm_Main_Venta);
-        frm_Main_Venta.setVisible(true);
-  
-        int x = (desktop.getWidth() / 2) - frm_Main_Venta.getWidth() /2;
-        int y = (desktop.getHeight()/ 2) - frm_Main_Venta.getHeight() /2;
-        if (frm_Main_Venta.isShowing()) {
-            frm_Main_Venta.setLocation(x, y);
-        }*/
-    }//GEN-LAST:event_jMenuItem4ActionPerformed
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
@@ -216,6 +150,7 @@ public class menu extends javax.swing.JFrame {
         // Menú Archivo (siempre visible)
         menu_1.removeAll();
         menu_2.removeAll();
+        menu_3.removeAll();
 
         // Verificar si hay sesión activa
         if (!session.sesionActiva()) {
@@ -224,44 +159,37 @@ public class menu extends javax.swing.JFrame {
             return;
         }
 
-        // <-- AÑADE ESTA LÍNEA para que aparezca Sistema -> Clientes
-        configurarItemsMenuClientes();
-
         // Configurar menús basados en permisos
         configurarMenuTransacciones();
         configurarMenuReportes();
-        //configurarMenuAdministracion();
 
         // Mostrar información del usuario en la barra de título
-        setTitle("Sistema de Gestión - Usuario: " + session.getNombreUsuario()
-                + " (" + session.getNombreRol() + ")");
+        setTitle("Sistema de Gestión - Usuario: " + session.getNombreUsuario()+ " (" + session.getNombreRol() + ")");
 
         menu_bar.revalidate();
         menu_bar.repaint();
-
-        menu_bar.add(menu_1);
+        //menu_bar.add(menu_1);
     }
 
     private void configurarMenuTransacciones() {
         if (session.tienePermiso("transacciones")) {
-            configurarItemsMenuCaja();
             configurarItemsMenuIngresos();
             configurarItemsMenuEgresos();
             configurarItemsMenuReposiciones();
-            //JMenuItem caja = new JMenuItem("Caja");
-            //JMenuItem ingreso = new JMenuItem("Ingresos");
-            //JMenuItem reposicion = new JMenuItem("Reposiciones");
-            //caja.addActionListener(e -> abrirCaja());
-
-            //JMenuItem egreso = new JMenuItem("Egresos");
-            //itemHistorial.addActionListener(e -> abrirHistorialTransacciones());
-            //menu_1.add(caja);
-            //menu_1.add(ingreso);
-            //menu_1.add(reposicion);
-            //menu_1.add(egreso);
+            configurarItemsMenuClientes();
+            configurarItemsMenuCaja();
+            //ConfigurarMenuItemSalir(menu_1);
+            
             menu_bar.add(menu_1);
             menu_bar.add(menu_3);
+            
         }
+    }
+    
+    private void ConfigurarMenuItemSalir(JMenu menu){
+        JMenuItem itemSalir = new JMenuItem("Salir");
+        itemSalir.addActionListener(e -> System.exit(0));
+        menu.add(itemSalir);
     }
 
     private void configurarMenuReportes() {
@@ -269,6 +197,7 @@ public class menu extends javax.swing.JFrame {
             menu_2.removeAll();
 
             JMenuItem itemReporteGeneral = new JMenuItem("Reporte General");
+            ConfigurarMenuItemSalir(menu_2);
             //itemReporteGeneral.addActionListener(e -> );
 
             menu_2.add(itemReporteGeneral);
@@ -298,12 +227,18 @@ public class menu extends javax.swing.JFrame {
     }
 
     private void configurarItemsMenuIngresos() {
+        JMenu ingresos = new JMenu("Ingresos");
         JMenuItem registroIngresos = new JMenuItem("Registro Ingresos");
         registroIngresos.addActionListener(e -> abrirIngreso());
+        ingresos.add(registroIngresos);
+        //menu_1.add(ingresos);
         menu_3.add(registroIngresos);
     }
 
     private void configurarItemsMenuEgresos() {
+        JMenu egresos = new JMenu("Egresos");
+
+        //menu_1.add(egresos);
         JMenuItem registroEgresos = new JMenuItem("Registro Egresos");
         registroEgresos.addActionListener(e -> abrirEgreso());
         menu_3.add(registroEgresos);
