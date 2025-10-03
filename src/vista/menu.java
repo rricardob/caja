@@ -103,7 +103,7 @@ public class menu extends javax.swing.JFrame {
 
         menu_bar.add(menu_2);
 
-        menu_3.setText("Caja");
+        menu_3.setText("Operaciones");
         menu_bar.add(menu_3);
 
         setJMenuBar(menu_bar);
@@ -239,9 +239,6 @@ public class menu extends javax.swing.JFrame {
         menu_bar.revalidate();
         menu_bar.repaint();
 
-        JMenuItem itemSalir = new JMenuItem("Salir");
-        itemSalir.addActionListener(e -> System.exit(0));
-        menu_1.add(itemSalir);
         menu_bar.add(menu_1);
     }
 
@@ -295,29 +292,21 @@ public class menu extends javax.swing.JFrame {
     }
 
     private void configurarItemsMenuClientes() {
-        JMenu clientes = new JMenu("Clientes");
-
-        // Ya no agregamos "Registro Clientes" aquí. El registro se abrirá desde Frm_Clientes -> Crear
-        JMenuItem gestionClientes = new JMenuItem("Gestionar Clientes");
-        gestionClientes.addActionListener(e -> abrirGestionClientes());
-
-        clientes.add(gestionClientes);
-
-        menu_1.add(clientes);
+        JMenuItem gestionarEstudiantes = new JMenuItem("Gestionar Estudiantes");
+        gestionarEstudiantes.addActionListener(e -> abrirGestionClientes()); // reutiliza el flujo actual
+        menu_1.add(gestionarEstudiantes);
     }
 
     private void configurarItemsMenuIngresos() {
-        JMenu ingresos = new JMenu("Ingresos");
         JMenuItem registroIngresos = new JMenuItem("Registro Ingresos");
         registroIngresos.addActionListener(e -> abrirIngreso());
-        ingresos.add(registroIngresos);
-        menu_1.add(ingresos);
+        menu_3.add(registroIngresos);
     }
 
     private void configurarItemsMenuEgresos() {
-        JMenu egresos = new JMenu("Egresos");
-
-        menu_1.add(egresos);
+        JMenuItem registroEgresos = new JMenuItem("Registro Egresos");
+        registroEgresos.addActionListener(e -> abrirEgreso());
+        menu_3.add(registroEgresos);
     }
 
     private void configurarItemsMenuReposiciones() {
@@ -345,6 +334,10 @@ public class menu extends javax.swing.JFrame {
         desktop.add(frm_ingreso);
         frm_ingreso.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_ingreso);
+    }
+
+    private void abrirEgreso() {
+        JOptionPane.showMessageDialog(this, "Registro de Egresos no implementado aún.");
     }
 
     private void abrirCliente() {
@@ -446,7 +439,7 @@ public class menu extends javax.swing.JFrame {
         reposicion.setVisible(true);
         ViewUtil.centerScreen(desktop, reposicion);
     }
-    
+
     private void abrirReposicionListado() {
         Frm_Listado_Reposicion frm_Listado_Reposicion = new Frm_Listado_Reposicion();
         frm_Listado_Reposicion.pack();

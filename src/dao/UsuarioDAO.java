@@ -16,7 +16,7 @@ public class UsuarioDAO {
     public Usuario login(String nombre_usuario, String clave_usuario) {
         String sql = "SELECT u.id_usuario, u.nombre_usuario, u.nombre_completo, "
                 + "r.id_rol, r.nombre AS nombre_rol, u.fecha_creacion, u.fecha_actualizacion "
-                + "FROM usuarios u "
+                + "FROM usuario u "
                 + "INNER JOIN roles r ON u.id_rol = r.id_rol "
                 + "WHERE u.nombre_usuario = ? AND u.clave_usuario = ?";
         try (Connection conn = ConexionDB.obtenerConexion();
@@ -54,7 +54,7 @@ public class UsuarioDAO {
     }
 
     public Usuario infoUsuario(Integer idUsuario) {
-        String sql = "select id_usuario, nombre_usuario, nombre_completo from usuarios where id_usuario = ?";
+        String sql = "select id_usuario, nombre_usuario, nombre_completo from usuario where id_usuario = ?";
         try (Connection conn = ConexionDB.obtenerConexion();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
