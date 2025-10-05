@@ -233,8 +233,6 @@ public class login extends javax.swing.JFrame {
                     loadingDialog.setLocationRelativeTo(this);
                     loadingDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 
-             
-
                     JLabel img = new JLabel(new javax.swing.ImageIcon(getClass().getResource("/assets/img/cargando4.gif")));
                     loadingDialog.add(img);
                     // Usar SwingWorker para manejar el retardo

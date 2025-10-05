@@ -1,8 +1,10 @@
 package controlador;
 
 import dao.UsuarioDAO;
+import java.util.List;
 import modelo.SessionManager;
 import modelo.Usuario;
+import util.Roles;
 
 
 public class UsuarioController {
@@ -21,5 +23,21 @@ public class UsuarioController {
 
     public void cerrarSesion() {
         this.session.cerrarSesion();
+    }
+    
+    public List<Usuario> obtenerUsuarios(String nombreUsuario){
+        return this.usuarioDAO.obtenerUsuarios(nombreUsuario);
+    }
+    
+    public Integer registrarUsuario(Usuario usuario){
+        return this.usuarioDAO.registrarUsuario(usuario, Roles.CAJERO.getId());
+    }
+    
+    public boolean actualizarUsuario(Usuario usuario){
+        return this.usuarioDAO.actualizarUsuario(usuario);
+    }
+    
+    public boolean eliminarUsuario(int IdUsuario){
+        return this.usuarioDAO.eliminarUsuario(IdUsuario);
     }
 }

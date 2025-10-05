@@ -179,11 +179,20 @@ public class menu extends javax.swing.JFrame {
             configurarItemsMenuClientes();
             configurarItemsMenuCaja();
             //ConfigurarMenuItemSalir(menu_1);
+            configurarMenuUsuarios();
             
             menu_bar.add(menu_1);
             menu_bar.add(menu_3);
             
         }
+    }
+    
+    private void configurarMenuUsuarios(){
+        JMenuItem listadoUsuarios = new JMenuItem("Listado de Usuarios");
+
+        listadoUsuarios.addActionListener(e -> abrirUsuario());
+
+        menu_3.add(listadoUsuarios);
     }
     
     private void ConfigurarMenuItemSalir(JMenu menu){
@@ -381,6 +390,14 @@ public class menu extends javax.swing.JFrame {
         desktop.add(frm_Listado_Reposicion);
         frm_Listado_Reposicion.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_Listado_Reposicion);
+    }
+    
+    private void abrirUsuario() {
+        Frm_Listado_Usuarios frm_usuarios = new Frm_Listado_Usuarios();
+        frm_usuarios.pack();
+        desktop.add(frm_usuarios);
+        frm_usuarios.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm_usuarios);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
