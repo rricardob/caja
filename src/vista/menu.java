@@ -164,7 +164,7 @@ public class menu extends javax.swing.JFrame {
         configurarMenuReportes();
 
         // Mostrar información del usuario en la barra de título
-        setTitle("Sistema de Gestión - Usuario: " + session.getNombreUsuario()+ " (" + session.getNombreRol() + ")");
+        setTitle("Sistema de Gestión - Usuario: " + session.getNombreUsuario() + " (" + session.getNombreRol() + ")");
 
         menu_bar.revalidate();
         menu_bar.repaint();
@@ -178,24 +178,48 @@ public class menu extends javax.swing.JFrame {
             configurarItemsMenuReposiciones();
             configurarItemsMenuClientes();
             configurarItemsMenuCaja();
-            //ConfigurarMenuItemSalir(menu_1);
+            configurarItemsMenuTipoTransacciones();   // <-- NUEVO
             configurarMenuUsuarios();
-            
             menu_bar.add(menu_1);
             menu_bar.add(menu_3);
-            
         }
     }
-    
-    private void configurarMenuUsuarios(){
+
+    private void configurarItemsMenuTipoTransacciones() {
+        javax.swing.JMenuItem gestionarTipos = new javax.swing.JMenuItem("Gestionar Tipo Transacciones");
+        gestionarTipos.addActionListener(e -> abrirGestionTipoTransacciones());
+        menu_1.add(gestionarTipos);
+    }
+
+    private void abrirGestionTipoTransacciones() {
+        for (javax.swing.JInternalFrame f : desktop.getAllFrames()) {
+            if (f instanceof Frm_Tipo_Transacciones) {
+                try {
+                    f.setIcon(false);
+                    f.setSelected(true);
+                    f.toFront();
+                } catch (java.beans.PropertyVetoException ex) {
+                    System.err.println("No se pudo seleccionar Frm_Tipo_Transacciones: " + ex.getMessage());
+                }
+                return;
+            }
+        }
+        Frm_Tipo_Transacciones frm = new Frm_Tipo_Transacciones();
+        frm.pack();
+        desktop.add(frm);
+        frm.setVisible(true);
+        util.ViewUtil.centerScreen(desktop, frm);
+    }
+
+    private void configurarMenuUsuarios() {
         JMenuItem listadoUsuarios = new JMenuItem("Listado de Usuarios");
 
         listadoUsuarios.addActionListener(e -> abrirUsuario());
 
         menu_3.add(listadoUsuarios);
     }
-    
-    private void ConfigurarMenuItemSalir(JMenu menu){
+
+    private void ConfigurarMenuItemSalir(JMenu menu) {
         JMenuItem itemSalir = new JMenuItem("Salir");
         itemSalir.addActionListener(e -> System.exit(0));
         menu.add(itemSalir);
@@ -391,7 +415,7 @@ public class menu extends javax.swing.JFrame {
         frm_Listado_Reposicion.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_Listado_Reposicion);
     }
-    
+
     private void abrirUsuario() {
         Frm_Listado_Usuarios frm_usuarios = new Frm_Listado_Usuarios();
         frm_usuarios.pack();

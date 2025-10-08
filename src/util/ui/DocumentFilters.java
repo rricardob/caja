@@ -5,6 +5,7 @@ import javax.swing.JTextArea;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.DocumentFilter;
 import java.util.regex.Pattern;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
@@ -26,7 +27,7 @@ public final class DocumentFilters {
         ((AbstractDocument) field.getDocument()).setDocumentFilter(new DecimalFilter(maxLen));
     }
 
-    // filtro alfanumérico con símbolos - . / y espacio
+    // filtro alfanumérico con símbolos - . / y espacio para TextField
     public static void attachAlphaNumSymbol(JTextField field, int maxLen) {
         ((AbstractDocument) field.getDocument()).setDocumentFilter(new AlphaNumSymbolFilter(maxLen));
     }
@@ -39,7 +40,15 @@ public final class DocumentFilters {
         }
     }
 
-    // Implementaciones
+    // filtro alfanumérico con símbolos - . / y espacio para TxtArea
+    public static void attachAlphaNumSymbol(JTextArea area, int maxLen) {
+        Document doc = area.getDocument();
+        if (doc instanceof AbstractDocument) {
+            ((AbstractDocument) doc).setDocumentFilter(new TextAreaAlphaNumSymbolFilter(maxLen));
+        }
+    }
+
+    // Implementaciones (como clases estáticas)
     private static class NumericLengthFilter extends DocumentFilter {
 
         private final int maxLen;
@@ -338,4 +347,81 @@ public final class DocumentFilters {
             super.remove(fb, offset, length);
         }
     }
+
+    private static class TextAreaAlphaNumSymbolFilter extends DocumentFilter {
+
+        private final int maxLen;
+        // Igual que AlphaNumSymbolFilter (letras, números, espacio y - . /), sin saltos de línea
+        private static final java.util.regex.Pattern ALLOW = Pattern.compile("[\\p{L}0-9\\.\\-/ ]");
+
+        TextAreaAlphaNumSymbolFilter(int maxLen) {
+            this.maxLen = maxLen;
+        }
+
+        @Override
+        public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
+                throws BadLocationException {
+            if (string == null || string.isEmpty()) {
+                return;
+            }
+            String filtered = filterAllowed(string);
+            if (filtered.isEmpty()) {
+                return;
+            }
+            int curLen = fb.getDocument().getLength();
+            int newLen = curLen + filtered.length();
+            if (newLen <= maxLen) {
+                super.insertString(fb, offset, filtered, attr);
+            } else {
+                int allowed = maxLen - curLen;
+                if (allowed > 0) {
+                    super.insertString(fb, offset, filtered.substring(0, allowed), attr);
+                }
+            }
+        }
+
+        @Override
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+                throws BadLocationException {
+            if (text == null) {
+                super.replace(fb, offset, length, text, attrs);
+                return;
+            }
+            if (text.isEmpty()) {
+                super.replace(fb, offset, length, text, attrs);
+                return;
+            }
+            String filtered = filterAllowed(text);
+            if (filtered.isEmpty()) {
+                return;
+            }
+            int curLen = fb.getDocument().getLength();
+            int newLen = curLen - length + filtered.length();
+            if (newLen <= maxLen) {
+                super.replace(fb, offset, length, filtered, attrs);
+            } else {
+                int allowed = maxLen - (curLen - length);
+                if (allowed > 0) {
+                    super.replace(fb, offset, length, filtered.substring(0, allowed), attrs);
+                }
+            }
+        }
+
+        @Override
+        public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
+            super.remove(fb, offset, length);
+        }
+
+        private String filterAllowed(String in) {
+            StringBuilder sb = new StringBuilder(in.length());
+            for (int i = 0; i < in.length(); i++) {
+                String ch = in.substring(i, i + 1);
+                if (ALLOW.matcher(ch).matches()) {
+                    sb.append(ch);
+                }
+            }
+            return sb.toString();
+        }
+    }
+
 }
