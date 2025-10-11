@@ -14,7 +14,7 @@ public class UsuarioTableModel extends AbstractTableModel {
     public UsuarioTableModel(List<Usuario> usuarios) {
         super();
         this.usuarios = usuarios;
-        this.columns = new String[]{"Id", "Nombre Usuario", "Nombre Completo", "Fecha Creacion"};
+        this.columns = new String[]{"Id", "Nombre Usuario", "Nombre Completo", "Fecha Creacion", "clave"};
     }
     
     
@@ -40,6 +40,8 @@ public class UsuarioTableModel extends AbstractTableModel {
                 return usuario.getNombre_completo();
             case 3:
                 return usuario.getFecha_creacion();
+            case 4:
+                return usuario.getClave_usuario();
             default:
                 return null;
         }
@@ -56,7 +58,8 @@ public class UsuarioTableModel extends AbstractTableModel {
                 return String.class;
             case 3:
                 return java.sql.Timestamp.class;
-  
+            case 4:
+                return String.class;
             default:
                 return Object.class;
         }

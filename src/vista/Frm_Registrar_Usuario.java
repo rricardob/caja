@@ -22,10 +22,11 @@ public class Frm_Registrar_Usuario extends javax.swing.JInternalFrame {
         this.usuario = usuario;
         this.setTitle(opcion);
         this.btn_guardar.setText(opcion);
-        System.out.println("parametro: " + this.opcion + " usuario: " + this.usuario.toString());
+        //System.out.println("parametro: " + this.opcion + " usuario: " + this.usuario.toString());
         if (this.opcion.equals("Editar")) {
             this.txt_nombre_usuario.setText(usuario.getNombre_usuario());
             this.txt_nombre_completo.setText(usuario.getNombre_completo());
+            this.txt_password.setText(usuario.getClave_usuario());
         }
     }
 
@@ -135,7 +136,7 @@ public class Frm_Registrar_Usuario extends javax.swing.JInternalFrame {
 
     private void guardarUsuario(String usuario, String clave, String nombreCompleto) {
         boolean flag = true;
-        if (usuario == null || usuario.equals("")) {
+        /*if (usuario == null || usuario.equals("")) {
             JOptionPane.showMessageDialog(null, " El usuario no puede ser vacio ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
             flag = false;
             return;
@@ -151,7 +152,7 @@ public class Frm_Registrar_Usuario extends javax.swing.JInternalFrame {
             JOptionPane.showMessageDialog(null, " El nombre no puede ser vacio ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
             flag = false;
             return;
-        }
+        }*/
 
         Usuario user = new Usuario();
         user.setNombre_usuario(usuario);
@@ -173,7 +174,7 @@ public class Frm_Registrar_Usuario extends javax.swing.JInternalFrame {
 
     private void editarUsuario(String usuario, String clave, String nombreCompleto) {
         boolean flag = true;
-        if (usuario == null || usuario.equals("")) {
+        /*if (usuario == null || usuario.equals("")) {
             JOptionPane.showMessageDialog(null, " El usuario no puede ser vacio ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
             flag = false;
             return;
@@ -189,7 +190,7 @@ public class Frm_Registrar_Usuario extends javax.swing.JInternalFrame {
             JOptionPane.showMessageDialog(null, " El nombre no puede ser vacio ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
             flag = false;
             return;
-        }
+        }*/
 
         Usuario user = new Usuario();
         user.setNombre_usuario(usuario);

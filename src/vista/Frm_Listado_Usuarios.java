@@ -10,6 +10,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import modelo.Usuario;
 import util.ViewUtil;
+import vista.dataTableModel.PasswordCellRenderer;
 import vista.dataTableModel.UsuarioTableModel;
 
 public class Frm_Listado_Usuarios extends javax.swing.JInternalFrame {
@@ -37,6 +38,8 @@ public class Frm_Listado_Usuarios extends javax.swing.JInternalFrame {
         btn_nuevo_usuario = new javax.swing.JButton();
         btn_eliminar_usuario = new javax.swing.JButton();
         btn_editar_usuario = new javax.swing.JButton();
+
+        setClosable(true);
 
         tbl_usuarios.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -143,7 +146,7 @@ public class Frm_Listado_Usuarios extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_txt_nombre_usuarioKeyPressed
 
     private void btn_nuevo_usuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_nuevo_usuarioActionPerformed
-        Frm_Registrar_Usuario frm_Registrar_Usuario = new Frm_Registrar_Usuario("Guardar", null);
+        Frm_Registrar_Usuario frm_Registrar_Usuario = new Frm_Registrar_Usuario("Guardar", this.usuarioEdicion);
         cargarFormularioUsuario(frm_Registrar_Usuario);
     }//GEN-LAST:event_btn_nuevo_usuarioActionPerformed
 
@@ -164,9 +167,11 @@ public class Frm_Listado_Usuarios extends javax.swing.JInternalFrame {
         Object id = tbl_usuarios.getValueAt(filaSeleccionada, 0); // Puede ser String, Integer, etc.
         Object nombreUsuario = tbl_usuarios.getValueAt(filaSeleccionada, 1); // Puede ser String, Integer, etc.
         Object nombreCompleto = tbl_usuarios.getValueAt(filaSeleccionada, 2); // Puede ser String, Integer, etc.
+        Object clave = tbl_usuarios.getValueAt(filaSeleccionada, 4);
         this.usuarioEdicion.setId_usuario(Integer.parseInt(id.toString()));
         this.usuarioEdicion.setNombre_usuario(nombreUsuario.toString());
         this.usuarioEdicion.setNombre_completo(nombreCompleto.toString());
+        this.usuarioEdicion.setClave_usuario(clave.toString());
     }//GEN-LAST:event_tbl_usuariosMouseClicked
 
     private void btn_eliminar_usuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_eliminar_usuarioActionPerformed
@@ -194,6 +199,7 @@ public class Frm_Listado_Usuarios extends javax.swing.JInternalFrame {
         columnModel.getColumn(1).setPreferredWidth(150);
         columnModel.getColumn(2).setPreferredWidth(140);
         columnModel.getColumn(3).setPreferredWidth(140);
+        columnModel.getColumn(4).setPreferredWidth(90);
 
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -202,8 +208,12 @@ public class Frm_Listado_Usuarios extends javax.swing.JInternalFrame {
         columnModel.getColumn(1).setCellRenderer(centerRenderer);
         columnModel.getColumn(2).setCellRenderer(centerRenderer);
         columnModel.getColumn(3).setCellRenderer(centerRenderer);
+        columnModel.getColumn(4).setCellRenderer(centerRenderer);
 
         tbl_usuarios.setAutoCreateRowSorter(true);
+        
+        // Configurar el renderer personalizado para la columna "Clave" (índice 4)
+        tbl_usuarios.getColumnModel().getColumn(4).setCellRenderer(new PasswordCellRenderer());
     }
 
     private void cargarFormularioUsuario(Frm_Registrar_Usuario frm_Registrar_Usuario) {
