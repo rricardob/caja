@@ -153,7 +153,7 @@ public class Frm_Reposicion_Agregar extends javax.swing.JInternalFrame {
         String normalizedImporte = importeStr.replace(',', '.');
         BigDecimal importe = new BigDecimal(normalizedImporte);
         
-        int idTrans = this.ingresoController.guardarIngreso(cliente, importe, descripcion);
+        /*int idTrans = this.ingresoController.guardarIngreso(cliente, importe, descripcion);
         if (idTrans > 0) {
             //JOptionPane.showMessageDialog(this, "Ingreso registrado correctamente (ID: " + idTrans + ").", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             txt_descripcion.setText("");
@@ -170,7 +170,7 @@ public class Frm_Reposicion_Agregar extends javax.swing.JInternalFrame {
                 this.dispose();
             }
 
-        }
+        } */
 
     }//GEN-LAST:event_btn_aceptarActionPerformed
 

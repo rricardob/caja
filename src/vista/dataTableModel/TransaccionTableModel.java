@@ -10,7 +10,7 @@ import modelo.Transaccion;
 public class TransaccionTableModel extends AbstractTableModel {
 
     private final String[] columnNames = {
-        "Sr.(es)", "DNI o RUC", "Dirección", "Descripción", "Importe ", "Fecha Registro"
+        "Sr.(es)", "DNI o RUC", "Tipo", "Dirección", "Descripción", "Importe ", "Fecha Registro"
     };
 
     private final List<Transaccion> datos = new ArrayList<>();
@@ -77,9 +77,9 @@ public class TransaccionTableModel extends AbstractTableModel {
     public Class<?> getColumnClass(int columnIndex) {
         switch (columnIndex) {
             case 4:
-                return BigDecimal.class; // importe
+                return BigDecimal.class;
             case 5:
-                return Timestamp.class;  // fecha
+                return Timestamp.class;
             default:
                 return String.class;
         }
@@ -100,12 +100,14 @@ public class TransaccionTableModel extends AbstractTableModel {
                 String ruc = t.getRuc();
                 return (ruc != null && !ruc.trim().isEmpty()) ? ruc : "";
             case 2:
-                return t.getDireccion();
+                return t.getTipoDescripcion() == null ? "" : t.getTipoDescripcion(); // descripción de tipo_transacciones
             case 3:
-                return t.getDescripcion();
+                return t.getDireccion();
             case 4:
-                return t.getImporte();
+                return t.getDescripcion();
             case 5:
+                return t.getImporte();
+            case 6:
                 return t.getFecha_creacion();
             default:
                 return null;
