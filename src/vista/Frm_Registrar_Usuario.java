@@ -1,32 +1,48 @@
 package vista;
 
 import controlador.UsuarioController;
+import java.util.function.Consumer;
 import javax.swing.JOptionPane;
 import modelo.Usuario;
+import util.ui.DocumentFilters;
+import util.ui.UIHelpers;
 
 public class Frm_Registrar_Usuario extends javax.swing.JInternalFrame {
 
     private final UsuarioController usuarioController;
     private String opcion;
     private Usuario usuario;
+    private Consumer<Usuario> onUsuarioCreated; // callback que invocaremos cuando se cree el cliente (puede ser null)
 
     public Frm_Registrar_Usuario() {
         initComponents();
         this.usuarioController = new UsuarioController();
+        setupFieldBehavior();
+    }
+
+    /**
+     * Constructor que acepta callback
+     */
+    public Frm_Registrar_Usuario(Consumer<Usuario> onUsuarioCreated) {
+        this();
+        this.onUsuarioCreated = onUsuarioCreated;
     }
 
     // Constructor sobrecargado: recibe el parámetro
-    public Frm_Registrar_Usuario(String parametro, Usuario usuario) {
-        this(); // Llama al constructor por defecto para inicializar la UI
-        this.opcion = parametro; // Guarda el parámetro
+    public Frm_Registrar_Usuario(String parametro, Usuario usuario, Consumer<Usuario> onUsuarioCreated) {
+        this(onUsuarioCreated); // llama al constructor base que ya inicializa todo
+        this.opcion = parametro;
         this.usuario = usuario;
         this.setTitle(opcion);
         this.btn_guardar.setText(opcion);
-        //System.out.println("parametro: " + this.opcion + " usuario: " + this.usuario.toString());
         if (this.opcion.equals("Editar")) {
             this.txt_nombre_usuario.setText(usuario.getNombre_usuario());
             this.txt_nombre_completo.setText(usuario.getNombre_completo());
             this.txt_password.setText(usuario.getClave_usuario());
+
+            UIHelpers.updatePlaceholderState(txt_nombre_usuario);
+            UIHelpers.updatePlaceholderState(txt_nombre_completo);
+            UIHelpers.updatePlaceholderState(txt_password);
         }
     }
 
@@ -122,48 +138,57 @@ public class Frm_Registrar_Usuario extends javax.swing.JInternalFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btn_guardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_guardarActionPerformed
-        String usuario = txt_nombre_usuario.getText();
-        String clave = txt_password.getText();
-        String nombreCompleto = txt_nombre_completo.getText();
+
+        String user = UIHelpers.getText(txt_nombre_usuario).trim();
+        String clave = UIHelpers.getText(txt_password).trim();
+        String nombreCompleto = UIHelpers.getText(txt_nombre_completo).trim();
 
         if (this.opcion.equals("Guardar")) {
-            guardarUsuario(usuario, clave, nombreCompleto);
+            guardarUsuario(user, clave, nombreCompleto);
         } else {
-            editarUsuario(usuario, clave, nombreCompleto);
+            editarUsuario(user, clave, nombreCompleto);
         }
 
     }//GEN-LAST:event_btn_guardarActionPerformed
 
     private void guardarUsuario(String usuario, String clave, String nombreCompleto) {
         boolean flag = true;
-        /*if (usuario == null || usuario.equals("")) {
-            JOptionPane.showMessageDialog(null, " El usuario no puede ser vacio ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
-            flag = false;
-            return;
-        }
-
-        if (clave == null || clave.equals("")) {
-            JOptionPane.showMessageDialog(null, " La clave no puede ser vacio ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
-            flag = false;
-            return;
-        }
-
-        if (nombreCompleto == null || nombreCompleto.equals("")) {
-            JOptionPane.showMessageDialog(null, " El nombre no puede ser vacio ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
-            flag = false;
-            return;
-        }*/
 
         Usuario user = new Usuario();
         user.setNombre_usuario(usuario);
         user.setClave_usuario(clave);
         user.setNombre_completo(nombreCompleto);
 
+        if (usuario == null || usuario.isEmpty()) {
+            JOptionPane.showMessageDialog(null, " El usuario no puede ser vacio ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
+            flag = false;
+            return;
+        }
+
+        if (clave == null || clave.isEmpty()) {
+            JOptionPane.showMessageDialog(null, " La clave no puede ser vacio ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
+            flag = false;
+            return;
+        }
+
+        if (nombreCompleto == null || nombreCompleto.isEmpty()) {
+            JOptionPane.showMessageDialog(null, " El nombre no puede ser vacio ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
+            flag = false;
+            return;
+        }
+
         if (flag) {
+
+            if (this.usuarioController.existeUsuario(user.getNombre_usuario())) {
+                JOptionPane.showMessageDialog(null, " Ya existe el nombre de usuario", "MENSAJE", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             int resultado = this.usuarioController.registrarUsuario(user);
 
             if (resultado > 0) {
                 JOptionPane.showMessageDialog(null, " Usuario registrado correctamente ", "MENSAJE", JOptionPane.INFORMATION_MESSAGE);
+                onUsuarioCreated.accept(user);
                 this.dispose();
             } else {
                 JOptionPane.showMessageDialog(null, " Hubo un error al registrar el usuario ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
@@ -203,6 +228,7 @@ public class Frm_Registrar_Usuario extends javax.swing.JInternalFrame {
 
             if (resultado) {
                 JOptionPane.showMessageDialog(null, " Usuario actualizado correctamente ", "MENSAJE", JOptionPane.INFORMATION_MESSAGE);
+                onUsuarioCreated.accept(user);
                 this.dispose();
             } else {
                 JOptionPane.showMessageDialog(null, " Hubo un error al actualizar el usuario ", "MENSAJE", JOptionPane.ERROR_MESSAGE);
@@ -210,6 +236,32 @@ public class Frm_Registrar_Usuario extends javax.swing.JInternalFrame {
         }
 
     }
+
+    /**
+     * Configuración bloqueo inicial; filtros de longitud/dígitos/símbolos y
+     * estado según tipo
+     */
+    private void setupFieldBehavior() {
+
+        // Filtros alfanum/símbolos para nombre y direccion
+        DocumentFilters.attachAlphaNumSymbol(txt_nombre_completo, 150);
+        DocumentFilters.attachAlphaNumSymbol(txt_nombre_usuario, 150);
+        DocumentFilters.attachAlphaNumSymbol(txt_password, 50);
+
+        // Tooltips + efecto foco 
+        UIHelpers.attachHintAndFocusColor(txt_nombre_completo, "Nombre Completo: letras, números, espacios y - . / (3-150 caracteres)");
+        UIHelpers.attachHintAndFocusColor(txt_nombre_usuario, "Nombre de Usuario: letras, números, espacios y - . / (3-150 caracteres)");
+        UIHelpers.attachHintAndFocusColor(txt_password, "Contraseña: letras, números, espacios y - . / (3-50 caracteres)");
+
+        // Placeholders
+        UIHelpers.attachPlaceholder(txt_nombre_completo, " Nombre Completo");
+        UIHelpers.attachPlaceholder(txt_nombre_usuario, " Nombre Usuario");
+        UIHelpers.attachPlaceholder(txt_password, " Contraseña");
+
+        // Estado inicial según combo (esto también actualizará los placeholders apropiadamente)
+        //updateTipoFields();
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_guardar;
     private javax.swing.JLabel jLabel1;

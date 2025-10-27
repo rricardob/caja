@@ -2,6 +2,8 @@ package vista;
 
 import controlador.UsuarioController;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 import javax.swing.JDesktopPane;
 import javax.swing.JOptionPane;
@@ -25,6 +27,18 @@ public class Frm_Listado_Usuarios extends javax.swing.JInternalFrame {
         loadData("");
         desktop = ViewUtil.getDesktopPaneAncestor(this);
         usuarioEdicion = new Usuario();
+        // Doble clic en la tabla para editar
+        tbl_usuarios.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    editarUsuario();
+                }
+            }
+        });
+
+        btn_editar_usuario.setEnabled(Boolean.FALSE);
+        btn_eliminar_usuario.setEnabled(Boolean.FALSE);
     }
 
     @SuppressWarnings("unchecked")
@@ -146,13 +160,16 @@ public class Frm_Listado_Usuarios extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_txt_nombre_usuarioKeyPressed
 
     private void btn_nuevo_usuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_nuevo_usuarioActionPerformed
-        Frm_Registrar_Usuario frm_Registrar_Usuario = new Frm_Registrar_Usuario("Guardar", this.usuarioEdicion);
+        Frm_Registrar_Usuario frm_Registrar_Usuario = new Frm_Registrar_Usuario("Guardar", this.usuarioEdicion, created -> {
+            if (created != null) {
+                loadData("");
+            }
+        });
         cargarFormularioUsuario(frm_Registrar_Usuario);
     }//GEN-LAST:event_btn_nuevo_usuarioActionPerformed
 
     private void btn_editar_usuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_editar_usuarioActionPerformed
-        Frm_Registrar_Usuario frm_Registrar_Usuario = new Frm_Registrar_Usuario("Editar", this.usuarioEdicion);
-        cargarFormularioUsuario(frm_Registrar_Usuario);
+        editarUsuario();
     }//GEN-LAST:event_btn_editar_usuarioActionPerformed
 
     private void tbl_usuariosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbl_usuariosMouseClicked
@@ -172,6 +189,9 @@ public class Frm_Listado_Usuarios extends javax.swing.JInternalFrame {
         this.usuarioEdicion.setNombre_usuario(nombreUsuario.toString());
         this.usuarioEdicion.setNombre_completo(nombreCompleto.toString());
         this.usuarioEdicion.setClave_usuario(clave.toString());
+
+        btn_editar_usuario.setEnabled(Boolean.TRUE);
+        btn_eliminar_usuario.setEnabled(Boolean.TRUE);
     }//GEN-LAST:event_tbl_usuariosMouseClicked
 
     private void btn_eliminar_usuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_eliminar_usuarioActionPerformed
@@ -211,7 +231,7 @@ public class Frm_Listado_Usuarios extends javax.swing.JInternalFrame {
         columnModel.getColumn(4).setCellRenderer(centerRenderer);
 
         tbl_usuarios.setAutoCreateRowSorter(true);
-        
+
         // Configurar el renderer personalizado para la columna "Clave" (índice 4)
         tbl_usuarios.getColumnModel().getColumn(4).setCellRenderer(new PasswordCellRenderer());
     }
@@ -255,6 +275,15 @@ public class Frm_Listado_Usuarios extends javax.swing.JInternalFrame {
 
         }
         loadData("");
+    }
+
+    private void editarUsuario() {
+        Frm_Registrar_Usuario frm_Registrar_Usuario = new Frm_Registrar_Usuario("Editar", this.usuarioEdicion, updated -> {
+            if (updated != null) {
+                loadData("");
+            }
+        });
+        cargarFormularioUsuario(frm_Registrar_Usuario);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
