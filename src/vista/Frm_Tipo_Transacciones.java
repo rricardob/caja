@@ -7,15 +7,11 @@ import modelo.CategoriaTransaccion;
 import dao.CategoriaTransaccionDAO;
 
 import vista.dataTableModel.TipoTransaccionTableModel;
-
 import util.ui.DocumentFilters;
 import util.ui.UIHelpers;
-
 import javax.swing.*;
-
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;

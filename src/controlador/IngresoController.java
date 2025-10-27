@@ -55,8 +55,8 @@ public class IngresoController {
      * IllegalArgumentException para errores de validación de parámetros,
      * IllegalStateException si no hay sesión activa.
      */
-    public int guardarIngreso(Cliente cliente, BigDecimal importe, String descripcion) {
-        // validaciones mínimas de negocio para mantener la integridad 
+    public int guardarIngreso(Cliente cliente, BigDecimal importe, String descripcion, long idTipo) {
+        // validaciones mínimas de negocio
         if (cliente == null) {
             throw new IllegalArgumentException("Cliente requerido.");
         }
@@ -66,10 +66,13 @@ public class IngresoController {
         if (importe.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("El importe debe ser mayor que 0.");
         }
-
+        if (idTipo <= 0) {
+            throw new IllegalArgumentException("Tipo de transacción inválido.");
+        }
         if (!session.sesionActiva()) {
             throw new IllegalStateException("No hay sesión de caja activa.");
         }
+
         int idUsuario = session.getIdUsuario();
         int idSesion = cajaDAO.obtenerIdSesionActivaPorUsuario(idUsuario);
         if (idSesion == -1) {
@@ -77,10 +80,55 @@ public class IngresoController {
         }
 
         try {
-            return transaccionDAO.guardarIngreso(idSesion, idUsuario, cliente.getId_cliente(), importe, descripcion);
+            return transaccionDAO.guardarIngreso(idSesion, idUsuario, cliente.getId_cliente(), importe, descripcion, idTipo);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error en transaccionDAO.guardarIngreso", ex);
             return -1;
+        }
+    }
+
+    /**
+     * Actualiza una transacción existente (importe, descripción, tipo).
+     */
+    public boolean actualizarTransaccion(Transaccion t) {
+        if (t == null || t.getId_transaccion() <= 0) {
+            throw new IllegalArgumentException("Transacción inválida para actualizar.");
+        }
+
+        // Validar importe y descripción
+        if (t.getImporte() == null || t.getImporte().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El importe debe ser mayor que 0.");
+        }
+
+        if (t.getDescripcion() == null || t.getDescripcion().trim().isEmpty()) {
+            throw new IllegalArgumentException("La descripción es obligatoria.");
+        }
+
+        if (t.getId_tipo() <= 0) {
+            throw new IllegalArgumentException("Tipo de transacción inválido.");
+        }
+
+        try {
+            boolean ok = transaccionDAO.actualizarTransaccion(t);
+            if (!ok) {
+                LOGGER.log(Level.WARNING, "DAO no actualizó transacción: {0}", t.getId_transaccion());
+            }
+            return ok;
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error actualizar transacción", ex);
+            return false;
+        }
+    }
+
+    /**
+     * Elimina una transacción por su ID.
+     */
+    public boolean eliminarTransaccion(int idTransaccion) {
+        try {
+            return transaccionDAO.eliminarTransaccion(idTransaccion);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error eliminar transacción", ex);
+            return false;
         }
     }
 
@@ -89,22 +137,17 @@ public class IngresoController {
      * sesión o error).
      */
     public List<Transaccion> listarIngresosPorSesionActiva() {
-        int idUsuario = session.getIdUsuario();
-        int idSesion = cajaDAO.obtenerIdSesionActivaPorUsuario(idUsuario);
-        if (idSesion == -1) {
-            return java.util.Collections.emptyList();
-        }
-
         try {
-            // Intentar localizar el cliente estático por nombre
-            Cliente repoClient = clienteDAO.buscarPorNombre(REPOSICION_CLIENT_NAME);
-            if (repoClient != null && repoClient.getId_cliente() > 0) {
-                // Llamar al DAO que excluye por id_cliente
-                return transaccionDAO.listarIngresosPorSesionExcludingClient(idSesion, repoClient.getId_cliente());
-            } else {
-                // Si no existe el cliente estático, usar el método normal
-                return transaccionDAO.listarIngresosPorSesion(idSesion);
+            if (!session.sesionActiva()) {
+                return java.util.Collections.emptyList();
             }
+            int idUsuario = session.getIdUsuario();
+            int idSesion = cajaDAO.obtenerIdSesionActivaPorUsuario(idUsuario);
+            if (idSesion == -1) {
+                return java.util.Collections.emptyList();
+            }
+            // Mostrar INGRESO y REPOSICION sin excluir al cliente de reposición
+            return transaccionDAO.listarIngresosPorSesion(idSesion);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error listarIngresosPorSesionActiva", ex);
             return java.util.Collections.emptyList();

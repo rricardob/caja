@@ -1,16 +1,12 @@
 package vista;
 
 import controlador.TipoTransaccionController;
-
 import modelo.TipoTransaccion;
 import modelo.CategoriaTransaccion;
-
 import dao.CategoriaTransaccionDAO;
-
 import util.ui.DocumentFilters;
 import util.ui.UIHelpers;
 import util.validation.ValidationResult;
-
 import javax.swing.*;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +72,7 @@ public class Frm_Crear_Tipo_Transacciones extends javax.swing.JInternalFrame {
     private void configureFrame() {
         this.setClosable(true);
         this.setResizable(false);
-        this.setTitle(editMode ? "Modificar Tipo Transacción" : "Crear Tipo Transacción");
+        this.setTitle(editMode ? "Modificar Tipo Transacción" : "Modificar Tipo Transacción");
     }
 
     private void setupEstadoCheckBoxes() {

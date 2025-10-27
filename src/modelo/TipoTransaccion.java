@@ -73,4 +73,9 @@ public class TipoTransaccion {
         this.id_categoria_transacciones = id_categoria_transacciones;
     }
 
+    @Override
+    public String toString() {
+        return descripcion == null ? "" : descripcion;
+    }
+
 }

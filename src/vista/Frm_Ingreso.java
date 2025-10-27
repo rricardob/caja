@@ -5,23 +5,30 @@ import java.util.logging.Logger;
 import controlador.IngresoController;
 import modelo.Cliente;
 import modelo.Transaccion;
+import dao.TipoTransaccionDAO;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
+import modelo.TipoTransaccion;
 import util.ui.DocumentFilters;
 import util.ui.UIHelpers;
 import util.validation.ValidationResult;
 import vista.dataTableModel.TransaccionTableModel;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.SwingUtilities;
+import java.util.function.Consumer;
 
 public class Frm_Ingreso extends javax.swing.JInternalFrame {
 
     private static final Logger LOGGER = Logger.getLogger(Frm_Ingreso.class.getName());
     private final IngresoController controller;
     private Cliente clienteSeleccionado;
-
-    // Modelo De La Tabla
     private TransaccionTableModel transaccionTableModel;
 
     public Frm_Ingreso() {
@@ -37,6 +44,9 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         // Cargar datos en la tabla (fuera del EDT)
         cargarIngresosEnTabla();
 
+        // Cargar datos de tipo_transaccion 
+        cargarTiposTransaccionEnCombo();
+
         try {
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             lblFecha.setText(LocalDate.now().format(fmt));
@@ -47,7 +57,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         // Bloqueamos Sr y Dirección para que no sean editables manualmente
         txtSr.setEditable(false);
         txtDireccion.setEditable(false);
-        // sincronizar placeholder state para campos no editables
+        // Sincronizar placeholder state para campos no editables
         UIHelpers.updatePlaceholderState(txtSr);
         UIHelpers.updatePlaceholderState(txtDireccion);
 
@@ -70,6 +80,16 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         UIHelpers.updatePlaceholderState(txtDoc);
         UIHelpers.updatePlaceholderState(txtDescripcionArea);
         UIHelpers.updatePlaceholderState(txtImporte);
+        
+        // Acción Doble Click Para Edición 
+        jTable1.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                    onEdit();
+                }
+            }
+        });
 
     }
 
@@ -103,6 +123,45 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         worker.execute();
     }
 
+    /**
+     * Carga el combo cbTipoTransaccion con tipos activos de categorías INGRESO
+     * y REPOSICION.
+     */
+    private void cargarTiposTransaccionEnCombo() {
+        SwingWorker<List<TipoTransaccion>, Void> worker = new SwingWorker<List<TipoTransaccion>, Void>() {
+            @Override
+            protected List<TipoTransaccion> doInBackground() throws Exception {
+                try {
+                    TipoTransaccionDAO tipoDao = new TipoTransaccionDAO();
+                    List<String> categorias = Arrays.asList("INGRESO", "REPOSICION");
+                    return tipoDao.listarPorCategorias(categorias);
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Error al listar tipos por categoría: {0}", ex.toString());
+                    return java.util.Collections.emptyList();
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<TipoTransaccion> lista = get();
+                    DefaultComboBoxModel<TipoTransaccion> model = new DefaultComboBoxModel<>();
+                    for (TipoTransaccion t : lista) {
+                        model.addElement(t);
+                    }
+                    cbTipoTransaccion.setModel(model);
+
+                    if (lista.isEmpty()) {
+                        LOGGER.log(Level.WARNING, "No hay tipos de transacción activos para INGRESO/REPOSICION");
+                    }
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Error al poblar combo tipos: {0}", ex.toString());
+                }
+            }
+        };
+        worker.execute();
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -119,11 +178,14 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         btnBuscarCliente = new javax.swing.JButton();
         lblDescripcion = new javax.swing.JLabel();
         btnGuardar = new javax.swing.JButton();
-        btnCancelar = new javax.swing.JButton();
         lblImporte = new javax.swing.JLabel();
         txtImporte = new javax.swing.JTextField();
         jScrollPane2 = new javax.swing.JScrollPane();
         txtDescripcionArea = new javax.swing.JTextArea();
+        cbTipoTransaccion = new javax.swing.JComboBox<>();
+        jLabel1 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
@@ -160,18 +222,36 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             }
         });
 
-        btnCancelar.setText("CANCELAR");
-        btnCancelar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnCancelarActionPerformed(evt);
-            }
-        });
-
         lblImporte.setText("Importe :  ");
 
         txtDescripcionArea.setColumns(20);
         txtDescripcionArea.setRows(5);
         jScrollPane2.setViewportView(txtDescripcionArea);
+
+        cbTipoTransaccion.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbTipoTransaccionActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setText("Elegir Tipo Transaccion :");
+
+        jButton1.setText("EDITAR");
+        jButton1.setMaximumSize(new java.awt.Dimension(81, 23));
+        jButton1.setMinimumSize(new java.awt.Dimension(81, 23));
+        jButton1.setPreferredSize(new java.awt.Dimension(81, 23));
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jButton2.setText("ELIMINAR");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout panel_registro_ingresosLayout = new javax.swing.GroupLayout(panel_registro_ingresos);
         panel_registro_ingresos.setLayout(panel_registro_ingresosLayout);
@@ -182,22 +262,36 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
                         .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 145, Short.MAX_VALUE)
-                        .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(32, 32, 32)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(32, 32, 32)
+                        .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_registro_ingresosLayout.createSequentialGroup()
+                        .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
+                                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(lblDoc)
+                                    .addComponent(lblSr))
+                                .addGap(7, 7, 7))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_registro_ingresosLayout.createSequentialGroup()
+                                .addComponent(lblDireccion)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)))
+                        .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtDoc, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(txtSr)
+                            .addComponent(txtDireccion)))
+                    .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cbTipoTransaccion, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
                         .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lblDoc)
-                            .addComponent(lblSr)
-                            .addComponent(lblDireccion)
                             .addComponent(lblDescripcion)
                             .addComponent(lblImporte))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtDoc, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(txtSr)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(txtDireccion)
-                            .addComponent(txtImporte))))
+                            .addComponent(txtImporte)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE))))
                 .addGap(18, 18, 18)
                 .addComponent(btnBuscarCliente)
                 .addGap(68, 68, 68)
@@ -207,35 +301,40 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         panel_registro_ingresosLayout.setVerticalGroup(
             panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(18, 18, 18)
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblDoc)
                     .addComponent(txtDoc, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnBuscarCliente)
                     .addComponent(lblFecha))
-                .addGap(18, 18, 18)
+                .addGap(18, 18, Short.MAX_VALUE)
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtSr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblSr))
-                .addGap(18, 18, 18)
+                .addGap(18, 18, Short.MAX_VALUE)
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtDireccion, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblDireccion))
-                .addGap(21, 21, 21)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+                .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(cbTipoTransaccion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, Short.MAX_VALUE)
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_registro_ingresosLayout.createSequentialGroup()
-                        .addComponent(lblDescripcion)
-                        .addGap(23, 23, 23)))
-                .addGap(18, 18, 18)
+                    .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
+                        .addGap(20, 20, 20)
+                        .addComponent(lblDescripcion)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblImporte, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txtImporte, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addGap(18, 18, Short.MAX_VALUE)
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnCancelar, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE))
-                .addContainerGap())
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2))
+                .addContainerGap(18, Short.MAX_VALUE))
         );
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Listado De Registro - Ingresos"));
@@ -259,7 +358,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 667, Short.MAX_VALUE)
+                .addComponent(jScrollPane1)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -276,26 +375,26 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(panel_registro_ingresos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(25, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(panel_registro_ingresos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(40, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(panel_registro_ingresos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void txtSrActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSrActionPerformed
-        // TODO add your handling code here:
+        
     }//GEN-LAST:event_txtSrActionPerformed
 
     private void btnBuscarClienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarClienteActionPerformed
@@ -395,7 +494,8 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         return ruc != null ? ruc : "";
     }
 
-
+    
+    // Guardar Ingreso 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
         try {
             String nombreCliente = UIHelpers.getText(txtSr).trim();
@@ -404,7 +504,14 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             String descripcion = UIHelpers.getText(txtDescripcionArea).trim();
             String importeStr = UIHelpers.getText(txtImporte).trim();
 
-            // Validación centralizada a través del controller (homogeneidad)
+            // Obtener el tipo seleccionado del combo
+            TipoTransaccion tipoSeleccionado = (TipoTransaccion) cbTipoTransaccion.getSelectedItem();
+            if (tipoSeleccionado == null) {
+                JOptionPane.showMessageDialog(this, "Debe seleccionar un tipo de transacción.", "Validación", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Validación centralizada
             ValidationResult vr = controller.validateIngreso(doc, descripcion, importeStr);
             if (!vr.isOk()) {
                 JOptionPane.showMessageDialog(this, vr.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
@@ -415,37 +522,38 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             if (clienteSeleccionado == null && !doc.isEmpty()) {
                 clienteSeleccionado = controller.buscarClientePorDoc(doc);
             }
-
             if (clienteSeleccionado == null) {
-                JOptionPane.showMessageDialog(this, "El cliente no está registrado. Debes registrar el cliente antes de guardar el ingreso.", "Cliente requerido", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                        "El cliente no está registrado. Debes registrar el cliente antes de guardar el ingreso.",
+                        "Cliente requerido", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Normalizar coma a punto antes de parsear
-            String normalizedImporte = importeStr.replace(',', '.');
-            java.math.BigDecimal importe = new java.math.BigDecimal(normalizedImporte);
+            // Normalizar importe
+            String normalizedImporte = importeStr.replace(",", ".");
+            BigDecimal importe = new BigDecimal(normalizedImporte);
 
-            int idTrans = controller.guardarIngreso(clienteSeleccionado, importe, descripcion);
+            // Pasar el idTipo del objeto seleccionado al controller
+            int idTrans = controller.guardarIngreso(clienteSeleccionado, importe, descripcion, tipoSeleccionado.getId_tipo());
+
             if (idTrans > 0) {
-                JOptionPane.showMessageDialog(this, "Ingreso registrado correctamente (ID: " + idTrans + ").", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Ingreso registrado correctamente (ID: " + idTrans + ").",
+                        "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+                // Limpiar campos y actualizar placeholders
                 txtDescripcionArea.setText("");
                 txtImporte.setText("");
-                // actualizar placeholder state de estos campos vacíos
                 UIHelpers.updatePlaceholderState(txtDescripcionArea);
                 UIHelpers.updatePlaceholderState(txtImporte);
 
-                LOGGER.log(Level.INFO, "Ingreso registrado ID: {0} clienteId: {1} importe: {2}", new Object[]{idTrans, clienteSeleccionado.getId_cliente(), importe});
+                LOGGER.log(Level.INFO, "Ingreso registrado ID: {0}, tipoId: {1}, clienteId: {2}, importe: {3}",
+                        new Object[]{idTrans, tipoSeleccionado.getId_tipo(), clienteSeleccionado.getId_cliente(), importe});
 
-                // Añadir la transacción recien creada al modelo (background)
+                // Añadir la transacción recién creada al modelo (manteniendo tu flujo actual)
                 SwingWorker<Transaccion, Void> workerAdd = new SwingWorker<Transaccion, Void>() {
                     @Override
                     protected Transaccion doInBackground() throws Exception {
-                        try {
-                            return controller.obtenerTransaccionPorId(idTrans);
-                        } catch (Exception ex) {
-                            LOGGER.log(Level.SEVERE, "Error obtenerTransaccionPorId: {0}", ex.toString());
-                            return null;
-                        }
+                        return controller.obtenerTransaccionPorId(idTrans);
                     }
 
                     @Override
@@ -458,39 +566,176 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                                 if (row >= 0) {
                                     jTable1.scrollRectToVisible(jTable1.getCellRect(row, 0, true));
                                 }
-                            } else {
-                                LOGGER.log(Level.WARNING, "Transaccion recuperada nula para id {0}", idTrans);
                             }
                         } catch (Exception ex) {
-                            LOGGER.log(Level.SEVERE, "Error al añadir transaccion al modelo: {0}", ex.toString());
+                            LOGGER.log(Level.SEVERE, "Error al añadir ingreso al modelo", ex);
                         }
                     }
                 };
                 workerAdd.execute();
-
             } else {
-                JOptionPane.showMessageDialog(this, "Error al registrar ingreso. Verifique que exista una sesión de caja abierta.", "Error", JOptionPane.ERROR_MESSAGE);
-                LOGGER.log(Level.SEVERE, "Error al registrar ingreso. clienteId: {0} importe: {1}", new Object[]{clienteSeleccionado != null ? clienteSeleccionado.getId_cliente() : -1, importe});
+                JOptionPane.showMessageDialog(this, "Error al registrar ingreso.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-
         } catch (IllegalArgumentException | IllegalStateException ex) {
-            // Errores esperados desde controller (validación/estado)
-            LOGGER.log(Level.WARNING, "Validación/Estado inválido al guardar ingreso: {0}", ex.getMessage());
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Validación / Estado", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Validación/Estado", JOptionPane.WARNING_MESSAGE);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Excepción guardar ingreso: {0}", e.getMessage());
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Excepción", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnGuardarActionPerformed
+    
+    // Edición de ingresos por medio de acción doble click a través del TableModel 
+    private void onEdit() {
+        int viewRow = jTable1.getSelectedRow();
+        if (viewRow < 0) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Seleccione Registro Para Editar.", "Aviso", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        // Si tienes sorter/filters activos, convierte a índice de modelo como en tipos
+        int modelRow = jTable1.convertRowIndexToModel(viewRow);
 
-    private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
-        dispose();
-    }//GEN-LAST:event_btnCancelarActionPerformed
+        // Obtener la transacción desde tu TransaccionTableModel
+        Transaccion seleccionado = transaccionTableModel.getTransaccionAt(modelRow);
+        if (seleccionado == null) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Registro Inválido.", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Callback: recarga todo el listado para mantener coherencia como en tipos
+        Consumer<Transaccion> onUpdated = (t) -> {
+            cargarIngresosEnTabla(); // ya existe en tu Frm_Ingreso
+        };
+
+        // Abrir JInternalFrame de edición (Frm_Modificar_Ingreso)
+        Frm_Modificar_Ingreso frm = new Frm_Modificar_Ingreso(seleccionado, onUpdated);
+        showInternal(frm); // usa el helper de abajo
+    }
+
+    //  Helper de apertura dentro del DesktopPane (idéntico a tipos)
+    private void showInternal(javax.swing.JInternalFrame frame) {
+        javax.swing.JDesktopPane desktop = (javax.swing.JDesktopPane) javax.swing.SwingUtilities.getAncestorOfClass(javax.swing.JDesktopPane.class, this);
+        if (desktop == null) {
+            desktop = this.getDesktopPane();
+        }
+        if (desktop != null) {
+            desktop.add(frame);
+            frame.pack();
+            frame.setVisible(true);
+            try {
+                frame.setSelected(true);
+            } catch (java.beans.PropertyVetoException ex) {
+                LOGGER.log(java.util.logging.Level.WARNING, "setSelected fallo: {0}", ex.getMessage());
+            }
+            frame.toFront();
+        } else {
+            javax.swing.JFrame owner = (javax.swing.JFrame) javax.swing.SwingUtilities.getWindowAncestor(this);
+            javax.swing.JDialog dlg = new javax.swing.JDialog(owner, frame.getTitle(), true);
+            dlg.getContentPane().add(frame.getContentPane());
+            dlg.pack();
+            dlg.setLocationRelativeTo(this);
+            dlg.setVisible(true);
+        }
+    }
+
+    private void cbTipoTransaccionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbTipoTransaccionActionPerformed
+
+    }//GEN-LAST:event_cbTipoTransaccionActionPerformed
+    
+    // Edición por medio del Botón 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un ingreso para editar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Transaccion t = transaccionTableModel.getTransaccionAt(selectedRow);
+        if (t == null) {
+            JOptionPane.showMessageDialog(this, "Error al obtener el ingreso seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Abrir formulario de edición con callback
+        Frm_Modificar_Ingreso frmEditar = new Frm_Modificar_Ingreso(t, transaccionActualizada -> {
+            // Callback: actualizar la fila en la tabla
+            transaccionTableModel.update(selectedRow, transaccionActualizada);
+            LOGGER.log(Level.INFO, "Ingreso actualizado en tabla: {0}", transaccionActualizada.getId_transaccion());
+        });
+
+        frmEditar.setVisible(true);
+        getDesktopPane().add(frmEditar);
+
+        try {
+            frmEditar.setSelected(true);
+            frmEditar.setMaximum(false);
+            frmEditar.pack();
+            frmEditar.setLocation(
+                    (getDesktopPane().getWidth() - frmEditar.getWidth()) / 2,
+                    (getDesktopPane().getHeight() - frmEditar.getHeight()) / 2
+            );
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Error al centrar formulario", ex);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+    
+    // Eliminar por medio del botón 
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un ingreso para eliminar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Transaccion t = transaccionTableModel.getTransaccionAt(selectedRow);
+        if (t == null) {
+            JOptionPane.showMessageDialog(this, "Error al obtener el ingreso seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Confirmación
+        String mensaje = String.format("¿Está seguro de eliminar este ingreso?\n\nCliente: %s\nImporte: %s\nDescripción: %s",
+                t.getNombre_completo(),
+                t.getImporte().toString(),
+                t.getDescripcion());
+
+        int confirm = JOptionPane.showConfirmDialog(this, mensaje, "Confirmar Eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Eliminar en segundo plano
+            SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    return controller.eliminarTransaccion(t.getId_transaccion());
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        boolean eliminado = get();
+                        if (eliminado) {
+                            transaccionTableModel.removeAt(selectedRow);
+                            JOptionPane.showMessageDialog(Frm_Ingreso.this, "Ingreso eliminado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                            LOGGER.log(Level.INFO, "Ingreso eliminado ID: {0}", t.getId_transaccion());
+                        } else {
+                            JOptionPane.showMessageDialog(Frm_Ingreso.this, "No se pudo eliminar el ingreso.", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.SEVERE, "Error al eliminar ingreso", ex);
+                        JOptionPane.showMessageDialog(Frm_Ingreso.this, "Error al eliminar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            };
+            worker.execute();
+        }
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnBuscarCliente;
-    private javax.swing.JButton btnCancelar;
     private javax.swing.JButton btnGuardar;
+    private javax.swing.JComboBox<TipoTransaccion> cbTipoTransaccion;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
