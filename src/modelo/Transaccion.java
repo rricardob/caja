@@ -20,6 +20,7 @@ public class Transaccion {
     private transient String doc_identidad;
     private transient String ruc;
     private transient String direccion;
+    private transient String tipoDescripcion;
 
     public Transaccion() {
     }
@@ -137,6 +138,14 @@ public class Transaccion {
 
     public void setDireccion(String direccion) {
         this.direccion = direccion;
+    }
+
+    public String getTipoDescripcion() {
+        return tipoDescripcion;
+    }
+
+    public void setTipoDescripcion(String tipoDescripcion) {
+        this.tipoDescripcion = tipoDescripcion;
     }
 
 }

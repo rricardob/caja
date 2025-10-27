@@ -204,6 +204,38 @@ public class TipoTransaccionDAO {
         return lista;
     }
 
+    /**
+     * Lista tipos de transacción activos filtrados por múltiples categorías.
+     * lista de nombres de categorías ("INGRESO", "EGRESO", "REPOSICION")
+     */
+    public List<TipoTransaccion> listarPorCategorias(List<String> categoriasDescripcion) {
+        if (categoriasDescripcion == null || categoriasDescripcion.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<TipoTransaccion> lista = new ArrayList<>();
+        String placeholders = String.join(", ", java.util.Collections.nCopies(categoriasDescripcion.size(), "?"));
+        String sql = "SELECT tt.id_tipo, tt.descripcion, tt.estado, tt.fecha_creacion, tt.fecha_actualizacion, tt.id_categoria_transacciones "
+                + "FROM tipo_transacciones tt "
+                + "INNER JOIN categoria_transacciones ct ON tt.id_categoria_transacciones = ct.id_categoria_transacciones "
+                + "WHERE ct.descripcion IN (" + placeholders + ") AND tt.estado = 1 "
+                + "ORDER BY tt.descripcion ASC";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            for (int i = 0; i < categoriasDescripcion.size(); i++) {
+                pst.setString(i + 1, categoriasDescripcion.get(i));
+            }
+            try (ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error listarPorCategorias", ex);
+        }
+        return lista;
+    }
+
     private TipoTransaccion mapRow(ResultSet rs) throws SQLException {
         TipoTransaccion t = new TipoTransaccion();
         t.setId_tipo(rs.getLong("id_tipo"));
