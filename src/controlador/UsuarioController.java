@@ -40,4 +40,8 @@ public class UsuarioController {
     public boolean eliminarUsuario(int IdUsuario){
         return this.usuarioDAO.eliminarUsuario(IdUsuario);
     }
+    
+    public boolean existeUsuario(String nombreUsuario){
+        return this.usuarioDAO.existeUsuario(nombreUsuario);
+    }
 }

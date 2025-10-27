@@ -202,5 +202,22 @@ public class UsuarioDAO {
             return false;
         }
     }
+    
+    public boolean existeUsuario(String nombre_usuario) {
+        String sql = "SELECT u.id_usuario FROM usuario u WHERE u.nombre_usuario = ?";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, nombre_usuario);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+              return Boolean.TRUE;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return Boolean.FALSE;
+    }
 
 }
