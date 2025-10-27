@@ -19,14 +19,16 @@ import util.ui.DocumentFilters;
 import util.ui.UIHelpers;
 import util.validation.ValidationResult;
 import vista.dataTableModel.TransaccionTableModel;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.SwingUtilities;
+import java.util.function.Consumer;
 
 public class Frm_Ingreso extends javax.swing.JInternalFrame {
 
     private static final Logger LOGGER = Logger.getLogger(Frm_Ingreso.class.getName());
     private final IngresoController controller;
     private Cliente clienteSeleccionado;
-
-    // Modelo De La Tabla
     private TransaccionTableModel transaccionTableModel;
 
     public Frm_Ingreso() {
@@ -55,7 +57,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         // Bloqueamos Sr y Dirección para que no sean editables manualmente
         txtSr.setEditable(false);
         txtDireccion.setEditable(false);
-        // sincronizar placeholder state para campos no editables
+        // Sincronizar placeholder state para campos no editables
         UIHelpers.updatePlaceholderState(txtSr);
         UIHelpers.updatePlaceholderState(txtDireccion);
 
@@ -78,6 +80,16 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         UIHelpers.updatePlaceholderState(txtDoc);
         UIHelpers.updatePlaceholderState(txtDescripcionArea);
         UIHelpers.updatePlaceholderState(txtImporte);
+        
+        // Acción Doble Click Para Edición 
+        jTable1.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                    onEdit();
+                }
+            }
+        });
 
     }
 
@@ -166,13 +178,14 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         btnBuscarCliente = new javax.swing.JButton();
         lblDescripcion = new javax.swing.JLabel();
         btnGuardar = new javax.swing.JButton();
-        btnCancelar = new javax.swing.JButton();
         lblImporte = new javax.swing.JLabel();
         txtImporte = new javax.swing.JTextField();
         jScrollPane2 = new javax.swing.JScrollPane();
         txtDescripcionArea = new javax.swing.JTextArea();
         cbTipoTransaccion = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
@@ -209,13 +222,6 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             }
         });
 
-        btnCancelar.setText("CANCELAR");
-        btnCancelar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnCancelarActionPerformed(evt);
-            }
-        });
-
         lblImporte.setText("Importe :  ");
 
         txtDescripcionArea.setColumns(20);
@@ -230,6 +236,23 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
 
         jLabel1.setText("Elegir Tipo Transaccion :");
 
+        jButton1.setText("EDITAR");
+        jButton1.setMaximumSize(new java.awt.Dimension(81, 23));
+        jButton1.setMinimumSize(new java.awt.Dimension(81, 23));
+        jButton1.setPreferredSize(new java.awt.Dimension(81, 23));
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jButton2.setText("ELIMINAR");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout panel_registro_ingresosLayout = new javax.swing.GroupLayout(panel_registro_ingresos);
         panel_registro_ingresos.setLayout(panel_registro_ingresosLayout);
         panel_registro_ingresosLayout.setHorizontalGroup(
@@ -239,8 +262,10 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
                         .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 200, Short.MAX_VALUE)
-                        .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(32, 32, 32)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(32, 32, 32)
+                        .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_registro_ingresosLayout.createSequentialGroup()
                         .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
@@ -266,7 +291,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtImporte)
-                            .addComponent(jScrollPane2))))
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE))))
                 .addGap(18, 18, 18)
                 .addComponent(btnBuscarCliente)
                 .addGap(68, 68, 68)
@@ -307,7 +332,8 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 .addGap(18, 18, Short.MAX_VALUE)
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnCancelar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2))
                 .addContainerGap(18, Short.MAX_VALUE))
         );
 
@@ -368,7 +394,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void txtSrActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSrActionPerformed
-        // TODO add your handling code here:
+        
     }//GEN-LAST:event_txtSrActionPerformed
 
     private void btnBuscarClienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarClienteActionPerformed
@@ -468,7 +494,8 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         return ruc != null ? ruc : "";
     }
 
-
+    
+    // Guardar Ingreso 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
         try {
             String nombreCliente = UIHelpers.getText(txtSr).trim();
@@ -541,7 +568,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                                 }
                             }
                         } catch (Exception ex) {
-                            LOGGER.log(Level.SEVERE, "Error al añadir transacción al modelo", ex);
+                            LOGGER.log(Level.SEVERE, "Error al añadir ingreso al modelo", ex);
                         }
                     }
                 };
@@ -556,20 +583,158 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Excepción", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnGuardarActionPerformed
+    
+    // Edición de ingresos por medio de acción doble click a través del TableModel 
+    private void onEdit() {
+        int viewRow = jTable1.getSelectedRow();
+        if (viewRow < 0) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Seleccione Registro Para Editar.", "Aviso", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        // Si tienes sorter/filters activos, convierte a índice de modelo como en tipos
+        int modelRow = jTable1.convertRowIndexToModel(viewRow);
 
-    private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
-        dispose();
-    }//GEN-LAST:event_btnCancelarActionPerformed
+        // Obtener la transacción desde tu TransaccionTableModel
+        Transaccion seleccionado = transaccionTableModel.getTransaccionAt(modelRow);
+        if (seleccionado == null) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Registro Inválido.", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Callback: recarga todo el listado para mantener coherencia como en tipos
+        Consumer<Transaccion> onUpdated = (t) -> {
+            cargarIngresosEnTabla(); // ya existe en tu Frm_Ingreso
+        };
+
+        // Abrir JInternalFrame de edición (Frm_Modificar_Ingreso)
+        Frm_Modificar_Ingreso frm = new Frm_Modificar_Ingreso(seleccionado, onUpdated);
+        showInternal(frm); // usa el helper de abajo
+    }
+
+    //  Helper de apertura dentro del DesktopPane (idéntico a tipos)
+    private void showInternal(javax.swing.JInternalFrame frame) {
+        javax.swing.JDesktopPane desktop = (javax.swing.JDesktopPane) javax.swing.SwingUtilities.getAncestorOfClass(javax.swing.JDesktopPane.class, this);
+        if (desktop == null) {
+            desktop = this.getDesktopPane();
+        }
+        if (desktop != null) {
+            desktop.add(frame);
+            frame.pack();
+            frame.setVisible(true);
+            try {
+                frame.setSelected(true);
+            } catch (java.beans.PropertyVetoException ex) {
+                LOGGER.log(java.util.logging.Level.WARNING, "setSelected fallo: {0}", ex.getMessage());
+            }
+            frame.toFront();
+        } else {
+            javax.swing.JFrame owner = (javax.swing.JFrame) javax.swing.SwingUtilities.getWindowAncestor(this);
+            javax.swing.JDialog dlg = new javax.swing.JDialog(owner, frame.getTitle(), true);
+            dlg.getContentPane().add(frame.getContentPane());
+            dlg.pack();
+            dlg.setLocationRelativeTo(this);
+            dlg.setVisible(true);
+        }
+    }
 
     private void cbTipoTransaccionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbTipoTransaccionActionPerformed
-        // TODO add your handling code here:
+
     }//GEN-LAST:event_cbTipoTransaccionActionPerformed
+    
+    // Edición por medio del Botón 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un ingreso para editar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Transaccion t = transaccionTableModel.getTransaccionAt(selectedRow);
+        if (t == null) {
+            JOptionPane.showMessageDialog(this, "Error al obtener el ingreso seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Abrir formulario de edición con callback
+        Frm_Modificar_Ingreso frmEditar = new Frm_Modificar_Ingreso(t, transaccionActualizada -> {
+            // Callback: actualizar la fila en la tabla
+            transaccionTableModel.update(selectedRow, transaccionActualizada);
+            LOGGER.log(Level.INFO, "Ingreso actualizado en tabla: {0}", transaccionActualizada.getId_transaccion());
+        });
+
+        frmEditar.setVisible(true);
+        getDesktopPane().add(frmEditar);
+
+        try {
+            frmEditar.setSelected(true);
+            frmEditar.setMaximum(false);
+            frmEditar.pack();
+            frmEditar.setLocation(
+                    (getDesktopPane().getWidth() - frmEditar.getWidth()) / 2,
+                    (getDesktopPane().getHeight() - frmEditar.getHeight()) / 2
+            );
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Error al centrar formulario", ex);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+    
+    // Eliminar por medio del botón 
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un ingreso para eliminar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Transaccion t = transaccionTableModel.getTransaccionAt(selectedRow);
+        if (t == null) {
+            JOptionPane.showMessageDialog(this, "Error al obtener el ingreso seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Confirmación
+        String mensaje = String.format("¿Está seguro de eliminar este ingreso?\n\nCliente: %s\nImporte: %s\nDescripción: %s",
+                t.getNombre_completo(),
+                t.getImporte().toString(),
+                t.getDescripcion());
+
+        int confirm = JOptionPane.showConfirmDialog(this, mensaje, "Confirmar Eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Eliminar en segundo plano
+            SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    return controller.eliminarTransaccion(t.getId_transaccion());
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        boolean eliminado = get();
+                        if (eliminado) {
+                            transaccionTableModel.removeAt(selectedRow);
+                            JOptionPane.showMessageDialog(Frm_Ingreso.this, "Ingreso eliminado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                            LOGGER.log(Level.INFO, "Ingreso eliminado ID: {0}", t.getId_transaccion());
+                        } else {
+                            JOptionPane.showMessageDialog(Frm_Ingreso.this, "No se pudo eliminar el ingreso.", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.SEVERE, "Error al eliminar ingreso", ex);
+                        JOptionPane.showMessageDialog(Frm_Ingreso.this, "Error al eliminar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            };
+            worker.execute();
+        }
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnBuscarCliente;
-    private javax.swing.JButton btnCancelar;
     private javax.swing.JButton btnGuardar;
     private javax.swing.JComboBox<TipoTransaccion> cbTipoTransaccion;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JProgressBar jProgressBar1;

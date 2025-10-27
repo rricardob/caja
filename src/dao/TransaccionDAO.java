@@ -105,6 +105,152 @@ public class TransaccionDAO {
     }
 
     /**
+     * Actualiza una transacción existente (importe, descripción, tipo)
+     */
+    public boolean actualizarTransaccion(Transaccion t) {
+        if (t == null || t.getId_transaccion() <= 0) {
+            LOGGER.log(Level.WARNING, "actualizarTransaccion: transacción inválida");
+            return false;
+        }
+
+        String sql = "UPDATE transacciones SET id_tipo = ?, importe = ?, descripcion = ? WHERE id_transaccion = ?";
+        Connection conn = null;
+        PreparedStatement pstUpdate = null;
+        PreparedStatement pstRegistro = null;
+
+        try {
+            conn = ConexionDB.obtenerConexion();
+            conn.setAutoCommit(false);
+
+            pstUpdate = conn.prepareStatement(sql);
+            pstUpdate.setInt(1, t.getId_tipo());
+            pstUpdate.setBigDecimal(2, t.getImporte());
+            pstUpdate.setString(3, t.getDescripcion());
+            pstUpdate.setInt(4, t.getId_transaccion());
+
+            int affected = pstUpdate.executeUpdate();
+            if (affected == 0) {
+                conn.rollback();
+                return false;
+            }
+
+            String sqlRegistro = "INSERT INTO registros_transaccion (id_transaccion, accion, id_usuario) VALUES (?, ?, ?)";
+            pstRegistro = conn.prepareStatement(sqlRegistro);
+            pstRegistro.setInt(1, t.getId_transaccion());
+            pstRegistro.setString(2, "MODIFICADA");
+            pstRegistro.setInt(3, t.getId_usuario());
+            pstRegistro.executeUpdate();
+
+            conn.commit();
+            LOGGER.log(Level.INFO, "Transacción actualizada: {0}", t.getId_transaccion());
+            return true;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error actualizarTransaccion", e);
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                LOGGER.log(Level.WARNING, "Rollback falló en actualizarTransaccion", ex);
+            }
+            return false;
+        } finally {
+            try {
+                if (pstUpdate != null) {
+                    pstUpdate.close();
+                }
+            } catch (SQLException e) {
+                LOGGER.log(Level.FINE, "pstUpdate.close fallo", e);
+            }
+            try {
+                if (pstRegistro != null) {
+                    pstRegistro.close();
+                }
+            } catch (SQLException e) {
+                LOGGER.log(Level.FINE, "pstRegistro.close fallo", e);
+            }
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                LOGGER.log(Level.FINE, "conn.close fallo", e);
+            }
+        }
+    }
+
+    /**
+     * Elimina una transacción por su ID.
+     */
+    public boolean eliminarTransaccion(int idTransaccion) {
+        if (idTransaccion <= 0) {
+            LOGGER.log(Level.WARNING, "eliminarTransaccion: ID inválido");
+            return false;
+        }
+
+        Connection conn = null;
+        PreparedStatement pstDelRegs = null;
+        PreparedStatement pstDelTrans = null;
+
+        try {
+            conn = ConexionDB.obtenerConexion();
+            conn.setAutoCommit(false);
+
+            // 1) borrar hijos
+            String sqlDelRegs = "DELETE FROM registros_transaccion WHERE id_transaccion = ?";
+            pstDelRegs = conn.prepareStatement(sqlDelRegs);
+            pstDelRegs.setInt(1, idTransaccion);
+            pstDelRegs.executeUpdate();
+
+            // 2) borrar padre
+            String sqlDelTrans = "DELETE FROM transacciones WHERE id_transaccion = ?";
+            pstDelTrans = conn.prepareStatement(sqlDelTrans);
+            pstDelTrans.setInt(1, idTransaccion);
+            boolean ok = pstDelTrans.executeUpdate() > 0;
+
+            conn.commit();
+            if (ok) {
+                LOGGER.log(Level.INFO, "Transacción eliminada: {0}", idTransaccion);
+            }
+            return ok;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error eliminarTransaccion", ex);
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException e) {
+                LOGGER.log(Level.WARNING, "Rollback falló", e);
+            }
+            return false;
+        } finally {
+            try {
+                if (pstDelRegs != null) {
+                    pstDelRegs.close();
+                }
+            } catch (SQLException e) {
+                LOGGER.log(Level.FINE, "pstDelRegs.close fallo", e);
+            }
+            try {
+                if (pstDelTrans != null) {
+                    pstDelTrans.close();
+                }
+            } catch (SQLException e) {
+                LOGGER.log(Level.FINE, "pstDelTrans.close fallo", e);
+            }
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                LOGGER.log(Level.FINE, "conn.close fallo", e);
+            }
+        }
+    }
+
+    /**
      * Devuelve id_tipo para direccion = 'INGRESO' o -1 si no existe.
      */
     private long obtenerIdTipoPorCategoria(Connection conn, String categoriaNombre) throws SQLException {

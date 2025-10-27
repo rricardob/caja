@@ -76,9 +76,9 @@ public class TransaccionTableModel extends AbstractTableModel {
     @Override
     public Class<?> getColumnClass(int columnIndex) {
         switch (columnIndex) {
-            case 4:
-                return BigDecimal.class;
             case 5:
+                return BigDecimal.class;
+            case 6:
                 return Timestamp.class;
             default:
                 return String.class;
@@ -112,5 +112,13 @@ public class TransaccionTableModel extends AbstractTableModel {
             default:
                 return null;
         }
+    }
+
+    public void update(int rowIndex, Transaccion t) {
+        if (rowIndex < 0 || rowIndex >= datos.size() || t == null) {
+            return;
+        }
+        datos.set(rowIndex, t);
+        fireTableRowsUpdated(rowIndex, rowIndex);
     }
 }
