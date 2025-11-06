@@ -19,10 +19,19 @@ import util.ui.DocumentFilters;
 import util.ui.UIHelpers;
 import util.validation.ValidationResult;
 import vista.dataTableModel.TransaccionTableModel;
+import vista.dataTableModel.PaginatedTableModel;
+import vista.components.PaginationPanel;
+import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.SwingUtilities;
+import java.beans.PropertyVetoException;
+import java.util.Collections;
 import java.util.function.Consumer;
+import javax.swing.JDesktopPane;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.SwingUtilities;
 
 public class Frm_Ingreso extends javax.swing.JInternalFrame {
 
@@ -30,8 +39,11 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     private final IngresoController controller;
     private Cliente clienteSeleccionado;
     private TransaccionTableModel transaccionTableModel;
+    private PaginatedTableModel<Transaccion> paginatedModel;
+    private PaginationPanel paginationPanel;
 
     public Frm_Ingreso() {
+
         initComponents();
         this.controller = new IngresoController();
         this.setClosable(true);
@@ -41,12 +53,36 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         transaccionTableModel = new TransaccionTableModel();
         jTable1.setModel(transaccionTableModel);
 
+        // Acción de doble clic para abrir edición 
+        jTable1.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                    onEdit();
+                }
+            }
+        });
+
+        // Inicializar paginación (wrapper + panel) y conectar eventos
+        paginatedModel = new PaginatedTableModel<>(
+                transaccionTableModel,
+                (model, data) -> ((TransaccionTableModel) model).load(data),
+                20
+        );
+        paginationPanel = new PaginationPanel();
+        configurarPaginacion();
+
+        // Montar el panel de paginación en el contenedor visual del listado
+        pnlPaginacion.setLayout(new BorderLayout());
+        pnlPaginacion.add(paginationPanel, BorderLayout.CENTER);
+
         // Cargar datos en la tabla (fuera del EDT)
         cargarIngresosEnTabla();
 
         // Cargar datos de tipo_transaccion 
         cargarTiposTransaccionEnCombo();
 
+        // Seteamos Fecha 
         try {
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             lblFecha.setText(LocalDate.now().format(fmt));
@@ -57,6 +93,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         // Bloqueamos Sr y Dirección para que no sean editables manualmente
         txtSr.setEditable(false);
         txtDireccion.setEditable(false);
+
         // Sincronizar placeholder state para campos no editables
         UIHelpers.updatePlaceholderState(txtSr);
         UIHelpers.updatePlaceholderState(txtDireccion);
@@ -76,29 +113,62 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         UIHelpers.attachPlaceholder(txtDescripcionArea, " Motivo o Descripción");
         UIHelpers.attachPlaceholder(txtImporte, " Importe");
 
-        // Si alguno de los campos tenía texto (programático) ya, actualizar su estado
+        // Actualizar Estado 
         UIHelpers.updatePlaceholderState(txtDoc);
         UIHelpers.updatePlaceholderState(txtDescripcionArea);
         UIHelpers.updatePlaceholderState(txtImporte);
-        
-        // Acción Doble Click Para Edición 
-        jTable1.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
-                    onEdit();
+
+    }
+
+    // Paginación : conecta panel -> wrapper
+    private void configurarPaginacion() {
+        paginationPanel.onFirst(e -> {
+            paginatedModel.firstPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onPrev(e -> {
+            paginatedModel.previousPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onNext(e -> {
+            paginatedModel.nextPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onLast(e -> {
+            paginatedModel.lastPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onPageSize(e -> {
+            int newSize = paginationPanel.getSelectedPageSize();
+            paginatedModel.setPageSize(newSize);
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onGoTo(e -> {
+            try {
+                String pageText = paginationPanel.getGoToText();
+                if (!pageText.isEmpty()) {
+                    int page = Integer.parseInt(pageText);
+                    boolean ok = paginatedModel.goToPage(page);
+                    if (!ok) {
+                        JOptionPane.showMessageDialog(this,
+                                "Página inválida. Rango: 1-" + paginatedModel.getTotalPages(),
+                                "Advertencia",
+                                JOptionPane.WARNING_MESSAGE);
+                    }
+                    paginationPanel.clearGoTo();
+                    paginationPanel.setInfo(paginatedModel.getPaginationInfo());
                 }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Debe ingresar un número válido.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-
     }
 
     /**
      * Carga los ingresos desde la BDD usando IngresoController y los pone en el
-     * table model. Se ejecuta en background y actualiza la UI en el EDT.
+     * table model.
      */
     private void cargarIngresosEnTabla() {
-        // Usamos SwingWorker para no bloquear la UI
         SwingWorker<List<Transaccion>, Void> worker = new SwingWorker<List<Transaccion>, Void>() {
             @Override
             protected List<Transaccion> doInBackground() throws Exception {
@@ -106,7 +176,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                     return controller.listarIngresosPorSesionActiva();
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, "Error al listar ingresos: {0}", ex.toString());
-                    return java.util.Collections.emptyList();
+                    return Collections.emptyList();
                 }
             }
 
@@ -114,9 +184,13 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             protected void done() {
                 try {
                     List<Transaccion> lista = get();
-                    transaccionTableModel.load(lista);
+                    paginatedModel.loadAllData(lista); 
+                    paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+                    paginationPanel.enableAll(!lista.isEmpty());
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, "Error al cargar datos en la tabla: {0}", ex.toString());
+                    paginationPanel.setInfo("Sin datos");
+                    paginationPanel.enableAll(false);
                 }
             }
         };
@@ -189,6 +263,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
+        pnlPaginacion = new javax.swing.JPanel();
 
         panel_registro_ingresos.setBorder(javax.swing.BorderFactory.createTitledBorder("Formulario De Registro - Ingresos"));
 
@@ -261,11 +336,11 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 .addContainerGap()
                 .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
-                        .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(32, 32, 32)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(32, 32, 32)
-                        .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(20, 20, 20)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(20, 20, 20)
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_registro_ingresosLayout.createSequentialGroup()
                         .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(panel_registro_ingresosLayout.createSequentialGroup()
@@ -291,12 +366,12 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtImporte)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE))))
+                            .addComponent(jScrollPane2))))
                 .addGap(18, 18, 18)
                 .addComponent(btnBuscarCliente)
-                .addGap(68, 68, 68)
+                .addGap(65, 65, 65)
                 .addComponent(lblFecha)
-                .addGap(32, 32, 32))
+                .addGap(20, 20, 20))
         );
         panel_registro_ingresosLayout.setVerticalGroup(
             panel_registro_ingresosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -352,21 +427,36 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         ));
         jScrollPane1.setViewportView(jTable1);
 
+        javax.swing.GroupLayout pnlPaginacionLayout = new javax.swing.GroupLayout(pnlPaginacion);
+        pnlPaginacion.setLayout(pnlPaginacionLayout);
+        pnlPaginacionLayout.setHorizontalGroup(
+            pnlPaginacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        pnlPaginacionLayout.setVerticalGroup(
+            pnlPaginacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 40, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1)
-                .addContainerGap())
+                .addGap(10, 10, 10)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addComponent(pnlPaginacion, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(10, 10, 10))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(22, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(10, 10, 10)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(10, 10, 10)
+                .addComponent(pnlPaginacion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -374,27 +464,27 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(20, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(panel_registro_ingresos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(40, Short.MAX_VALUE))
+                .addContainerGap(35, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(20, Short.MAX_VALUE)
                 .addComponent(panel_registro_ingresos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 20, Short.MAX_VALUE)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addContainerGap(25, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void txtSrActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSrActionPerformed
-        
+
     }//GEN-LAST:event_txtSrActionPerformed
 
     private void btnBuscarClienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarClienteActionPerformed
@@ -420,7 +510,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                                 txtSr.setEditable(false);
                                 txtDireccion.setEditable(false);
                                 txtDoc.setText(getIdentificadorCliente(creado));
-                                // sincronizar placeholder state después de setText programático
+                                // sincronizar placeholder state después de setText
                                 UIHelpers.updatePlaceholderState(txtSr);
                                 UIHelpers.updatePlaceholderState(txtDireccion);
                                 UIHelpers.updatePlaceholderState(txtDoc);
@@ -494,7 +584,6 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         return ruc != null ? ruc : "";
     }
 
-    
     // Guardar Ingreso 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
         try {
@@ -539,7 +628,6 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             if (idTrans > 0) {
                 JOptionPane.showMessageDialog(this, "Ingreso registrado correctamente (ID: " + idTrans + ").",
                         "Éxito", JOptionPane.INFORMATION_MESSAGE);
-
                 // Limpiar campos y actualizar placeholders
                 txtDescripcionArea.setText("");
                 txtImporte.setText("");
@@ -549,30 +637,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                 LOGGER.log(Level.INFO, "Ingreso registrado ID: {0}, tipoId: {1}, clienteId: {2}, importe: {3}",
                         new Object[]{idTrans, tipoSeleccionado.getId_tipo(), clienteSeleccionado.getId_cliente(), importe});
 
-                // Añadir la transacción recién creada al modelo (manteniendo tu flujo actual)
-                SwingWorker<Transaccion, Void> workerAdd = new SwingWorker<Transaccion, Void>() {
-                    @Override
-                    protected Transaccion doInBackground() throws Exception {
-                        return controller.obtenerTransaccionPorId(idTrans);
-                    }
-
-                    @Override
-                    protected void done() {
-                        try {
-                            Transaccion t = get();
-                            if (t != null) {
-                                transaccionTableModel.add(t);
-                                int row = transaccionTableModel.getRowCount() - 1;
-                                if (row >= 0) {
-                                    jTable1.scrollRectToVisible(jTable1.getCellRect(row, 0, true));
-                                }
-                            }
-                        } catch (Exception ex) {
-                            LOGGER.log(Level.SEVERE, "Error al añadir ingreso al modelo", ex);
-                        }
-                    }
-                };
-                workerAdd.execute();
+                cargarIngresosEnTabla();
             } else {
                 JOptionPane.showMessageDialog(this, "Error al registrar ingreso.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -583,12 +648,12 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Excepción", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnGuardarActionPerformed
-    
+
     // Edición de ingresos por medio de acción doble click a través del TableModel 
     private void onEdit() {
         int viewRow = jTable1.getSelectedRow();
         if (viewRow < 0) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Seleccione Registro Para Editar.", "Aviso", javax.swing.JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Seleccione Registro Para Editar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
         // Si tienes sorter/filters activos, convierte a índice de modelo como en tipos
@@ -597,23 +662,23 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
         // Obtener la transacción desde tu TransaccionTableModel
         Transaccion seleccionado = transaccionTableModel.getTransaccionAt(modelRow);
         if (seleccionado == null) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Registro Inválido.", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Registro Inválido.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         // Callback: recarga todo el listado para mantener coherencia como en tipos
         Consumer<Transaccion> onUpdated = (t) -> {
-            cargarIngresosEnTabla(); // ya existe en tu Frm_Ingreso
+            cargarIngresosEnTabla();
         };
 
         // Abrir JInternalFrame de edición (Frm_Modificar_Ingreso)
         Frm_Modificar_Ingreso frm = new Frm_Modificar_Ingreso(seleccionado, onUpdated);
-        showInternal(frm); // usa el helper de abajo
+        showInternal(frm);
     }
 
     //  Helper de apertura dentro del DesktopPane (idéntico a tipos)
-    private void showInternal(javax.swing.JInternalFrame frame) {
-        javax.swing.JDesktopPane desktop = (javax.swing.JDesktopPane) javax.swing.SwingUtilities.getAncestorOfClass(javax.swing.JDesktopPane.class, this);
+    private void showInternal(JInternalFrame frame) {
+        JDesktopPane desktop = (JDesktopPane) SwingUtilities.getAncestorOfClass(JDesktopPane.class, this);
         if (desktop == null) {
             desktop = this.getDesktopPane();
         }
@@ -623,13 +688,13 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
             frame.setVisible(true);
             try {
                 frame.setSelected(true);
-            } catch (java.beans.PropertyVetoException ex) {
+            } catch (PropertyVetoException ex) {
                 LOGGER.log(java.util.logging.Level.WARNING, "setSelected fallo: {0}", ex.getMessage());
             }
             frame.toFront();
         } else {
-            javax.swing.JFrame owner = (javax.swing.JFrame) javax.swing.SwingUtilities.getWindowAncestor(this);
-            javax.swing.JDialog dlg = new javax.swing.JDialog(owner, frame.getTitle(), true);
+            JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
+            JDialog dlg = new JDialog(owner, frame.getTitle(), true);
             dlg.getContentPane().add(frame.getContentPane());
             dlg.pack();
             dlg.setLocationRelativeTo(this);
@@ -640,44 +705,12 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     private void cbTipoTransaccionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbTipoTransaccionActionPerformed
 
     }//GEN-LAST:event_cbTipoTransaccionActionPerformed
-    
+
     // Edición por medio del Botón 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        int selectedRow = jTable1.getSelectedRow();
-        if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar un ingreso para editar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        Transaccion t = transaccionTableModel.getTransaccionAt(selectedRow);
-        if (t == null) {
-            JOptionPane.showMessageDialog(this, "Error al obtener el ingreso seleccionado.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // Abrir formulario de edición con callback
-        Frm_Modificar_Ingreso frmEditar = new Frm_Modificar_Ingreso(t, transaccionActualizada -> {
-            // Callback: actualizar la fila en la tabla
-            transaccionTableModel.update(selectedRow, transaccionActualizada);
-            LOGGER.log(Level.INFO, "Ingreso actualizado en tabla: {0}", transaccionActualizada.getId_transaccion());
-        });
-
-        frmEditar.setVisible(true);
-        getDesktopPane().add(frmEditar);
-
-        try {
-            frmEditar.setSelected(true);
-            frmEditar.setMaximum(false);
-            frmEditar.pack();
-            frmEditar.setLocation(
-                    (getDesktopPane().getWidth() - frmEditar.getWidth()) / 2,
-                    (getDesktopPane().getHeight() - frmEditar.getHeight()) / 2
-            );
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, "Error al centrar formulario", ex);
-        }
+        onEdit();
     }//GEN-LAST:event_jButton1ActionPerformed
-    
+
     // Eliminar por medio del botón 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         int selectedRow = jTable1.getSelectedRow();
@@ -713,9 +746,8 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
                     try {
                         boolean eliminado = get();
                         if (eliminado) {
-                            transaccionTableModel.removeAt(selectedRow);
                             JOptionPane.showMessageDialog(Frm_Ingreso.this, "Ingreso eliminado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                            LOGGER.log(Level.INFO, "Ingreso eliminado ID: {0}", t.getId_transaccion());
+                            cargarIngresosEnTabla();
                         } else {
                             JOptionPane.showMessageDialog(Frm_Ingreso.this, "No se pudo eliminar el ingreso.", "Error", JOptionPane.ERROR_MESSAGE);
                         }
@@ -748,6 +780,7 @@ public class Frm_Ingreso extends javax.swing.JInternalFrame {
     private javax.swing.JLabel lblImporte;
     private javax.swing.JLabel lblSr;
     private javax.swing.JPanel panel_registro_ingresos;
+    private javax.swing.JPanel pnlPaginacion;
     private javax.swing.JTextArea txtDescripcionArea;
     private javax.swing.JTextField txtDireccion;
     private javax.swing.JTextField txtDoc;

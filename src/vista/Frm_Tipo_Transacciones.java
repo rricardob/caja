@@ -3,9 +3,8 @@ package vista;
 import controlador.TipoTransaccionController;
 import modelo.TipoTransaccion;
 import modelo.CategoriaTransaccion;
-
 import dao.CategoriaTransaccionDAO;
-
+import java.awt.BorderLayout;
 import vista.dataTableModel.TipoTransaccionTableModel;
 import util.ui.DocumentFilters;
 import util.ui.UIHelpers;
@@ -15,6 +14,8 @@ import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import vista.components.PaginationPanel;
+import vista.dataTableModel.PaginatedTableModel;
 
 public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
 
@@ -23,8 +24,11 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
     private final TipoTransaccionTableModel tableModel = new TipoTransaccionTableModel();
     private final CategoriaTransaccionDAO catDao = new CategoriaTransaccionDAO();
     private Map<Long, String> categoriaMap = new HashMap<>();
+    private PaginatedTableModel<TipoTransaccion> paginatedModel;
+    private PaginationPanel paginationPanel;
 
     public Frm_Tipo_Transacciones() {
+
         initComponents();
 
         this.setClosable(true);
@@ -52,8 +56,65 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
             }
         });
 
+        paginatedModel = new PaginatedTableModel<>(
+                tableModel,
+                (model, data) -> ((TipoTransaccionTableModel) model).load(data),
+                20
+        );
+        paginationPanel = new PaginationPanel();
+        configurarPaginacion();
+
+        pnlPaginacion.setLayout(new BorderLayout());
+        pnlPaginacion.add(paginationPanel, BorderLayout.CENTER);
+
+        loadCategorias();
+        loadTipos(); // MODIFICADO: ahora carga vía paginación (ver método)
+
         loadCategorias();
         loadTipos();
+    }
+
+    // AGREGADO: wiring del panel de paginación con el wrapper reutilizable
+    private void configurarPaginacion() {
+        paginationPanel.onFirst(e -> {
+            paginatedModel.firstPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onPrev(e -> {
+            paginatedModel.previousPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onNext(e -> {
+            paginatedModel.nextPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onLast(e -> {
+            paginatedModel.lastPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onPageSize(e -> {
+            int newSize = paginationPanel.getSelectedPageSize();
+            paginatedModel.setPageSize(newSize);
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onGoTo(e -> {
+            try {
+                String pageText = paginationPanel.getGoToText();
+                if (!pageText.isEmpty()) {
+                    int page = Integer.parseInt(pageText);
+                    boolean ok = paginatedModel.goToPage(page);
+                    if (!ok) {
+                        JOptionPane.showMessageDialog(this,
+                                "Página inválida. Rango: 1-" + paginatedModel.getTotalPages(),
+                                "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    }
+                    paginationPanel.clearGoTo();
+                    paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Debe ingresar un número válido.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
     }
 
     private void loadCategorias() {
@@ -74,21 +135,27 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
     private void loadTipos() {
         try {
             List<TipoTransaccion> lista = controller.listarTodos();
-            tableModel.load(lista);
+            //tableModel.load(lista);
+            paginatedModel.loadAllData(lista);
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+            paginationPanel.enableAll(!lista.isEmpty());
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error al cargar registros", ex);
             JOptionPane.showMessageDialog(this, "Error al cargar tipos de transacción. Revisa los logs.", "Error", JOptionPane.ERROR_MESSAGE);
+            paginationPanel.setInfo("Sin datos");
+            paginationPanel.enableAll(false);
         }
     }
 
     private void onAdd() {
         Frm_Crear_Tipo_Transacciones frm = new Frm_Crear_Tipo_Transacciones(created -> {
             if (created != null) {
-                tableModel.add(created);
+                /*tableModel.add(created);
                 int r = tableModel.getRowCount() - 1;
                 if (r >= 0) {
                     table1.setRowSelectionInterval(r, r);
-                }
+                }*/
+                loadTipos();
             }
         });
         frm.setCategoriaMap(categoriaMap); // pasar mapa para mostrar nombres y preselección
@@ -109,7 +176,6 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
         }
         Frm_Crear_Tipo_Transacciones frm = new Frm_Crear_Tipo_Transacciones(t, updated -> {
             if (updated != null) {
-                // recargar listado entero para coherencia
                 loadTipos();
             }
         });
@@ -137,7 +203,8 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
         }
         boolean ok = controller.eliminar(t.getId_tipo());
         if (ok) {
-            tableModel.removeAt(modelRow);
+            //tableModel.removeAt(modelRow);
+            loadTipos();
             JOptionPane.showMessageDialog(this, "Registro Eliminado.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this, "El registro ya está siendo utilizado en otro proceso", "Advertencia", JOptionPane.ERROR_MESSAGE);
@@ -196,7 +263,10 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
                 filtered.add(t);
             }
         }
-        tableModel.load(filtered);
+        //tableModel.load(filtered);
+        paginatedModel.loadAllData(filtered);
+        paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        paginationPanel.enableAll(!filtered.isEmpty());
     }
 
     private void showInternal(JInternalFrame frame) {
@@ -236,6 +306,7 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
         btnDelete1 = new javax.swing.JButton();
         txtSearch1 = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
+        pnlPaginacion = new javax.swing.JPanel();
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Gestion Tipo Transacciones"));
 
@@ -260,6 +331,19 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
 
         jLabel2.setText("Buscar :");
 
+        pnlPaginacion.setPreferredSize(new java.awt.Dimension(0, 40));
+
+        javax.swing.GroupLayout pnlPaginacionLayout = new javax.swing.GroupLayout(pnlPaginacion);
+        pnlPaginacion.setLayout(pnlPaginacionLayout);
+        pnlPaginacionLayout.setHorizontalGroup(
+            pnlPaginacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        pnlPaginacionLayout.setVerticalGroup(
+            pnlPaginacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 40, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -267,7 +351,7 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 650, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 778, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(jPanel2Layout.createSequentialGroup()
@@ -280,7 +364,8 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(txtSearch1)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(pnlPaginacion, javax.swing.GroupLayout.DEFAULT_SIZE, 778, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -295,9 +380,11 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
                     .addComponent(btnAdd1)
                     .addComponent(btnEdit1)
                     .addComponent(btnDelete1))
-                .addGap(27, 27, 27)
+                .addGap(30, 30, 30)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 315, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(22, Short.MAX_VALUE))
+                .addGap(10, 10, 10)
+                .addComponent(pnlPaginacion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -305,19 +392,17 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(20, 20, 20)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(22, 22, 22))
+                .addGap(20, 20, 20))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(15, 15, 15)
+                .addGap(20, 20, 20)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(23, 23, 23))
+                .addGap(20, 20, 20))
         );
-
-        jPanel2.getAccessibleContext().setAccessibleName("Gestion Tipo Transacciones");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -330,6 +415,7 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JPanel pnlPaginacion;
     private javax.swing.JTable table1;
     private javax.swing.JTextField txtSearch1;
     // End of variables declaration//GEN-END:variables

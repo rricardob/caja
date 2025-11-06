@@ -178,7 +178,7 @@ public class menu extends javax.swing.JFrame {
             configurarItemsMenuReposiciones();
             configurarItemsMenuClientes();
             configurarItemsMenuCaja();
-            configurarItemsMenuTipoTransacciones();   // <-- NUEVO
+            configurarItemsMenuTipoTransacciones();
             configurarMenuUsuarios();
             menu_bar.add(menu_1);
             menu_bar.add(menu_3);
@@ -254,8 +254,8 @@ public class menu extends javax.swing.JFrame {
     }
 
     private void configurarItemsMenuClientes() {
-        JMenuItem gestionarEstudiantes = new JMenuItem("Gestionar Estudiantes");
-        gestionarEstudiantes.addActionListener(e -> abrirGestionClientes()); // reutiliza el flujo actual
+        JMenuItem gestionarEstudiantes = new JMenuItem("Gestionar Clientes");
+        gestionarEstudiantes.addActionListener(e -> abrirGestionClientes());
         menu_1.add(gestionarEstudiantes);
     }
 

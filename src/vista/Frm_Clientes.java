@@ -1,6 +1,7 @@
 package vista;
 
 import controlador.ClienteController;
+import java.awt.BorderLayout;
 import modelo.Cliente;
 import vista.dataTableModel.ClienteTableModel;
 import java.util.logging.Level;
@@ -17,38 +18,36 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import util.ui.DocumentFilters;
 import util.ui.UIHelpers;
+import vista.components.PaginationPanel;
+import vista.dataTableModel.PaginatedTableModel;
 
 public class Frm_Clientes extends javax.swing.JInternalFrame {
 
     private static final Logger LOGGER = Logger.getLogger(Frm_Clientes.class.getName());
     private final ClienteController controller = new ClienteController();
     private final ClienteTableModel tableModel = new ClienteTableModel();
+    private PaginatedTableModel<Cliente> paginatedModel;
+    private PaginationPanel paginationPanel;
 
     public Frm_Clientes() {
+
         initComponents();
 
-        // Mostrar X (cerrable) y título en la barra de la ventana interna
         this.setClosable(true);
         this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         this.setTitle("Gestionar Clientes");
 
-        // Asignamos el table model (reemplaza el DefaultModel generado por NetBeans)
         table.setModel(tableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // 1) Filtro que sólo permita letras/números/ - . / y espacios
-        // 2) Placeholder "Nombre , DNI o RUC"
-        // 3) Tooltip "Buscar Por Nombre , DNI o RUC"
-        // 4) Focus color (efecto azul suave)
-        DocumentFilters.attachAlphaNumSymbol(txtSearch, 100); // límite 100 caracteres
+        DocumentFilters.attachAlphaNumSymbol(txtSearch, 100);
         UIHelpers.attachPlaceholder(txtSearch, " Nombre , DNI o RUC");
         UIHelpers.attachHintAndFocusColor(txtSearch, "Buscar Por Nombre , DNI o RUC");
 
-        // Listeners para botones y búsqueda (Enter en txtSearch)
         btnAdd.addActionListener(e -> onAdd());
         btnEdit.addActionListener(e -> onEdit());
         btnDelete.addActionListener(e -> onDelete());
-        txtSearch.addActionListener(e -> onSearch()); // Enter en el campo realiza búsqueda
+        txtSearch.addActionListener(e -> onSearch());
 
         // Doble clic en la tabla para editar
         table.addMouseListener(new MouseAdapter() {
@@ -60,30 +59,81 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
             }
         });
 
-        // Cargar datos iniciales
+        // Paginación 
+        paginatedModel = new PaginatedTableModel<>(
+                tableModel,
+                (model, data) -> ((ClienteTableModel) model).load(data),
+                20
+        );
+
+        paginationPanel = new PaginationPanel();
+        configurarPaginacion();
+        pnlPaginacion.setLayout(new BorderLayout());
+        pnlPaginacion.add(paginationPanel, BorderLayout.CENTER);
+
         loadClients();
+    }
+
+    private void configurarPaginacion() {
+        paginationPanel.onFirst(e -> {
+            paginatedModel.firstPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onPrev(e -> {
+            paginatedModel.previousPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onNext(e -> {
+            paginatedModel.nextPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onLast(e -> {
+            paginatedModel.lastPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onPageSize(e -> {
+            int newSize = paginationPanel.getSelectedPageSize();
+            paginatedModel.setPageSize(newSize);
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onGoTo(e -> {
+            try {
+                String pageText = paginationPanel.getGoToText();
+                if (!pageText.isEmpty()) {
+                    int page = Integer.parseInt(pageText);
+                    boolean ok = paginatedModel.goToPage(page);
+                    if (!ok) {
+                        JOptionPane.showMessageDialog(this,
+                                "Página inválida. Rango: 1-" + paginatedModel.getTotalPages(),
+                                "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    }
+                    paginationPanel.clearGoTo();
+                    paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Debe ingresar un número válido.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
     }
 
     private void loadClients() {
         try {
             List<Cliente> lista = controller.listarClientes();
-            tableModel.load(lista);
+            paginatedModel.loadAllData(lista);
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+            paginationPanel.enableAll(!lista.isEmpty());
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error al cargar clientes", ex);
             JOptionPane.showMessageDialog(this, "Error al cargar clientes. Revisa los logs.", "Error", JOptionPane.ERROR_MESSAGE);
+            paginationPanel.setInfo("Sin datos");
+            paginationPanel.enableAll(false);
         }
     }
 
     private void onAdd() {
-        // Abrir Frm_Cliente en modo "nuevo" y actualizar tabla cuando se cree
-        Frm_Cliente frm = new Frm_Cliente(created -> {
-            if (created != null) {
-                tableModel.add(created);
-                // opcional: seleccionar la fila nueva
-                int r = tableModel.getRowCount() - 1;
-                if (r >= 0) {
-                    table.setRowSelectionInterval(r, r);
-                }
+        Frm_Cliente frm = new Frm_Cliente(creado -> {
+            if (creado != null) {
+                loadClients();
             }
         });
         showInternal(frm);
@@ -102,10 +152,8 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
             return;
         }
 
-        // Reusar Frm_Cliente en modo edición (constructor que recibe Cliente y callback)
         Frm_Cliente frm = new Frm_Cliente(c, updated -> {
             if (updated != null) {
-                // refrescar tabla completa para mantener coherencia (sencillo y seguro)
                 loadClients();
             }
         });
@@ -134,8 +182,8 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
 
         boolean ok = controller.eliminarCliente(c.getId_cliente());
         if (ok) {
-            tableModel.removeAt(modelRow);
-            JOptionPane.showMessageDialog(this, "Cliente Eliminado.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            loadClients();
+            JOptionPane.showMessageDialog(this, "Registro Eliminado.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this, "El cliente ya está siendo utilizado en otro proceso", "Advertencia", JOptionPane.ERROR_MESSAGE);
         }
@@ -147,26 +195,22 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
             loadClients();
             return;
         }
-        String qRaw = raw.trim();          // usado para comparar con doc/ruc (numéricos)
-        String qLower = qRaw.toLowerCase(); // usado para comparar nombres (insensible a mayúsculas)
+        String qRaw = raw.trim();
+        String qLower = qRaw.toLowerCase();
 
-        // Búsqueda en memoria (adecuada si la tabla no es gigantesca). Si tienes muchos clientes, cambia a búsqueda en BD.
         List<Cliente> all = controller.listarClientes();
         List<Cliente> filtered = new java.util.ArrayList<>();
         for (Cliente c : all) {
             boolean match = false;
 
-            // Nombre (case-insensitive)
             if (c.getNombre_completo() != null && c.getNombre_completo().toLowerCase().contains(qLower)) {
                 match = true;
             }
 
-            // Doc identidad (comparación con qRaw - no toLower porque son dígitos)
             if (!match && c.getDoc_identidad() != null && c.getDoc_identidad().contains(qRaw)) {
                 match = true;
             }
 
-            // RUC
             if (!match && c.getRuc() != null && c.getRuc().contains(qRaw)) {
                 match = true;
             }
@@ -175,11 +219,12 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
                 filtered.add(c);
             }
         }
-        tableModel.load(filtered);
+        paginatedModel.loadAllData(filtered);
+        paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        paginationPanel.enableAll(!filtered.isEmpty());
     }
 
     private void showInternal(JInternalFrame frame) {
-        // agrega el internal frame al JDesktopPane (si existe) o lo muestra como dialog modal
         JDesktopPane desktop = (JDesktopPane) SwingUtilities.getAncestorOfClass(JDesktopPane.class, this);
         if (desktop == null) {
             desktop = this.getDesktopPane();
@@ -195,12 +240,10 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
             }
             frame.toFront();
         } else {
-            // fallback: mostrar en diálogo modal
             JInternalFrame wrapper = frame;
             JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
             JDialog dlg = new JDialog(owner, frame.getTitle(), true);
             dlg.getContentPane().add(frame);
-            // necesario para que el content sea visible
             dlg.pack();
             dlg.setLocationRelativeTo(this);
             dlg.setVisible(true);
@@ -219,6 +262,7 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
         btnDelete = new javax.swing.JButton();
         txtSearch = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
+        pnlPaginacion = new javax.swing.JPanel();
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Gestion Clientes "));
 
@@ -248,14 +292,27 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
 
         jLabel1.setText("Buscar :");
 
+        pnlPaginacion.setPreferredSize(new java.awt.Dimension(0, 40));
+
+        javax.swing.GroupLayout pnlPaginacionLayout = new javax.swing.GroupLayout(pnlPaginacion);
+        pnlPaginacion.setLayout(pnlPaginacionLayout);
+        pnlPaginacionLayout.setHorizontalGroup(
+            pnlPaginacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 778, Short.MAX_VALUE)
+        );
+        pnlPaginacionLayout.setVerticalGroup(
+            pnlPaginacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 40, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(10, 10, 10)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 650, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(jPanel1Layout.createSequentialGroup()
@@ -269,7 +326,11 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(txtSearch)))
                         .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                .addGap(10, 10, 10))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(10, 10, 10)
+                .addComponent(pnlPaginacion, javax.swing.GroupLayout.PREFERRED_SIZE, 778, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -285,7 +346,9 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
                     .addComponent(btnDelete))
                 .addGap(27, 27, 27)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 315, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(22, Short.MAX_VALUE))
+                .addGap(10, 10, 10)
+                .addComponent(pnlPaginacion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -293,16 +356,16 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(20, 20, 20)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(22, Short.MAX_VALUE))
+                .addGap(20, 20, 20))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(23, 23, 23))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(20, 20, 20)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 496, Short.MAX_VALUE)
+                .addGap(20, 20, 20))
         );
 
         pack();
@@ -320,6 +383,7 @@ public class Frm_Clientes extends javax.swing.JInternalFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JPanel pnlPaginacion;
     private javax.swing.JTable table;
     private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
