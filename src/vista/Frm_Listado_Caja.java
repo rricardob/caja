@@ -2,12 +2,15 @@ package vista;
 
 import controlador.CajaController;
 import dao.UsuarioDAO;
+import java.awt.BorderLayout;
 import java.io.InputStream;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -24,6 +27,8 @@ import net.sf.jasperreports.engine.data.JRTableModelDataSource;
 import net.sf.jasperreports.view.JasperViewer;
 import util.Constantes;
 import util.DateUtil;
+import vista.components.PaginationPanel;
+import vista.dataTableModel.PaginatedTableModel;
 import vista.dataTableModel.SesionCajaTableModel;
 
 public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
@@ -33,15 +38,77 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
     private final UsuarioDAO usuarioDAO;
     private Date fechaInicio = Date.valueOf(LocalDate.now());
     private Date fechaFin = Date.valueOf(LocalDate.now());
+    private static final Logger LOGGER = Logger.getLogger(Frm_Listado_Caja.class.getName());
+    private SesionCajaTableModel tableModel;
+    private PaginatedTableModel<SesionCaja> paginatedModel;
+    private PaginationPanel paginationPanel;
 
     public Frm_Listado_Caja() {
         initComponents();
         this.cajaController = new CajaController();
         this.session = SessionManager.getInstance();
         this.usuarioDAO = new UsuarioDAO();
+
+        tableModel = new SesionCajaTableModel(java.util.Collections.emptyList(), usuarioDAO);
+        tb_sesiones_caja.setModel(tableModel);
+
+        paginatedModel = new PaginatedTableModel<>(
+                tableModel,
+                (model, data) -> ((SesionCajaTableModel) model).load(data),
+                20
+        );
+        paginationPanel = new PaginationPanel();
+        configurarPaginacion();
+
+        pnlPaginacion.setLayout(new BorderLayout());
+        pnlPaginacion.add(paginationPanel, BorderLayout.CENTER);
+
         loadData(Date.valueOf(LocalDate.now()), Date.valueOf(LocalDate.now()));
+
         this.dc_fecha_inicio.setDateFormatString("dd/MM/yyyy");
         this.dc_fecha_fin.setDateFormatString("dd/MM/yyyy");
+    }
+
+    private void configurarPaginacion() {
+        paginationPanel.onFirst(e -> {
+            paginatedModel.firstPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onPrev(e -> {
+            paginatedModel.previousPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onNext(e -> {
+            paginatedModel.nextPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onLast(e -> {
+            paginatedModel.lastPage();
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onPageSize(e -> {
+            int newSize = paginationPanel.getSelectedPageSize();
+            paginatedModel.setPageSize(newSize);
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+        });
+        paginationPanel.onGoTo(e -> {
+            try {
+                String pageText = paginationPanel.getGoToText();
+                if (!pageText.isEmpty()) {
+                    int page = Integer.parseInt(pageText);
+                    boolean ok = paginatedModel.goToPage(page);
+                    if (!ok) {
+                        JOptionPane.showMessageDialog(this,
+                                "Página inválida. Rango: 1-" + paginatedModel.getTotalPages(),
+                                "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    }
+                    paginationPanel.clearGoTo();
+                    paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Debe ingresar un número válido.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -58,6 +125,7 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tb_sesiones_caja = new javax.swing.JTable();
+        pnlPaginacion = new javax.swing.JPanel();
 
         setClosable(true);
 
@@ -87,7 +155,7 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
         panel_filtroLayout.setHorizontalGroup(
             panel_filtroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panel_filtroLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(10, 10, 10)
                 .addComponent(lbl_fecha)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(dc_fecha_inicio, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -98,13 +166,13 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
                 .addGap(18, 18, 18)
                 .addComponent(btn_buscar)
                 .addGap(34, 34, 34)
-                .addComponent(btn_reporte, javax.swing.GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(btn_reporte, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(10, 10, 10))
         );
         panel_filtroLayout.setVerticalGroup(
             panel_filtroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panel_filtroLayout.createSequentialGroup()
-                .addGap(14, 14, 14)
+                .addGap(10, 10, 10)
                 .addGroup(panel_filtroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(panel_filtroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(btn_buscar)
@@ -113,7 +181,7 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
                     .addComponent(lbl_fecha)
                     .addComponent(jLabel1)
                     .addComponent(dc_fecha_fin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(10, 10, 10))
         );
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Datos Caja"));
@@ -131,21 +199,40 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
         ));
         jScrollPane1.setViewportView(tb_sesiones_caja);
 
+        pnlPaginacion.setPreferredSize(new java.awt.Dimension(0, 40));
+
+        javax.swing.GroupLayout pnlPaginacionLayout = new javax.swing.GroupLayout(pnlPaginacion);
+        pnlPaginacion.setLayout(pnlPaginacionLayout);
+        pnlPaginacionLayout.setHorizontalGroup(
+            pnlPaginacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 778, Short.MAX_VALUE)
+        );
+        pnlPaginacionLayout.setVerticalGroup(
+            pnlPaginacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 40, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(10, 10, 10)
                 .addComponent(jScrollPane1)
-                .addContainerGap())
+                .addGap(10, 10, 10))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGap(10, 10, 10)
+                .addComponent(pnlPaginacion, javax.swing.GroupLayout.PREFERRED_SIZE, 778, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(10, 10, 10)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(10, 10, 10)
+                .addComponent(pnlPaginacion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -153,22 +240,20 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(20, 20, 20)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(panel_filtro, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                    .addComponent(panel_filtro, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(20, 20, 20))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(20, 20, 20)
                 .addComponent(panel_filtro, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(10, 10, 10)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(13, Short.MAX_VALUE))
+                .addGap(20, 20, 20))
         );
 
         pack();
@@ -179,12 +264,11 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
         if (dc_fecha_inicio.getDate() != null) {
             fechaInicio = new Date(dc_fecha_inicio.getDate().getTime());
         }
-
         if (dc_fecha_fin.getDate() != null) {
             fechaFin = new Date(dc_fecha_fin.getDate().getTime());
         }
-
         loadData(fechaInicio, fechaFin);
+
     }//GEN-LAST:event_btn_buscarActionPerformed
 
     private void btn_reporteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_reporteActionPerformed
@@ -243,9 +327,20 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
     }
 
     private void loadData(Date fechaInicio, Date fechaFin) {
-        List<SesionCaja> sesionCajas = this.cajaController.obtenerHistorial(this.session.getIdUsuario(), fechaInicio, fechaFin);
-        tb_sesiones_caja.setModel(new SesionCajaTableModel(sesionCajas, usuarioDAO));
-        aplicarEstilosTabla();
+        try {
+            List<SesionCaja> sesionCajas = this.cajaController.obtenerHistorial(this.session.getIdUsuario(), fechaInicio, fechaFin);
+            paginatedModel.loadAllData(sesionCajas);
+            paginationPanel.setInfo(paginatedModel.getPaginationInfo());
+            paginationPanel.enableAll(!sesionCajas.isEmpty());
+
+            // Mantener estilos de tabla
+            aplicarEstilosTabla();
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error al cargar datos de caja", ex);
+            JOptionPane.showMessageDialog(this, "Error al cargar datos de caja. Revisa los logs.", "Error", JOptionPane.ERROR_MESSAGE);
+            paginationPanel.setInfo("Sin datos");
+            paginationPanel.enableAll(false);
+        }
     }
 
     private void aplicarEstilosTabla() {
@@ -326,6 +421,7 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_fecha;
     private javax.swing.JPanel panel_filtro;
+    private javax.swing.JPanel pnlPaginacion;
     private javax.swing.JTable tb_sesiones_caja;
     // End of variables declaration//GEN-END:variables
 }
