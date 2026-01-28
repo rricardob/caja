@@ -1,26 +1,30 @@
 package vista.dataTableModel;
 
 import dao.UsuarioDAO;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
 import modelo.SesionCaja;
 
 public class SesionCajaTableModel extends AbstractTableModel {
 
-    private final List<SesionCaja> sesionesCaja;
     private final String[] columns;
     private final UsuarioDAO usuarioDAO;
 
+    private final List<SesionCaja> rows = new ArrayList<>();
+
     public SesionCajaTableModel(List<SesionCaja> aSesionCajas, UsuarioDAO usuarioDAO) {
         super();
-        this.sesionesCaja = aSesionCajas;
         this.usuarioDAO = usuarioDAO;
         this.columns = new String[]{"Id", "Usuario", "Hora Inicio", "Hora Fin", "Saldo Inicial", "Saldo Final", "Estado"};
+        if (aSesionCajas != null) {
+            this.rows.addAll(aSesionCajas);
+        }
     }
 
     @Override
     public int getRowCount() {
-        return sesionesCaja.size();
+        return rows.size();
     }
 
     @Override
@@ -30,7 +34,7 @@ public class SesionCajaTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        SesionCaja sesionCaja = sesionesCaja.get(rowIndex);
+        SesionCaja sesionCaja = rows.get(rowIndex);
         switch (columnIndex) {
             case 0:
                 return sesionCaja.getIdSesion();
@@ -71,8 +75,23 @@ public class SesionCajaTableModel extends AbstractTableModel {
         }
     }
 
+    @Override
     public String getColumnName(int col) {
         return columns[col];
     }
 
+    public void load(List<SesionCaja> lista) {
+        rows.clear();
+        if (lista != null) {
+            rows.addAll(lista);
+        }
+        fireTableDataChanged();
+    }
+
+    public SesionCaja getSesionAt(int row) {
+        if (row < 0 || row >= rows.size()) {
+            return null;
+        }
+        return rows.get(row);
+    }
 }

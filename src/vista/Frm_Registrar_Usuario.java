@@ -12,7 +12,7 @@ public class Frm_Registrar_Usuario extends javax.swing.JInternalFrame {
     private final UsuarioController usuarioController;
     private String opcion;
     private Usuario usuario;
-    private Consumer<Usuario> onUsuarioCreated; // callback que invocaremos cuando se cree el cliente (puede ser null)
+    private Consumer<Usuario> onUsuarioCreated;
 
     public Frm_Registrar_Usuario() {
         initComponents();
