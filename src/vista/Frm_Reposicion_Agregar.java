@@ -3,13 +3,20 @@ package vista;
 import controlador.ClienteController;
 import controlador.IngresoController;
 import controlador.ReposicionController;
+import dao.TipoTransaccionDAO;
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultComboBoxModel;
+
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 import modelo.Cliente;
 import modelo.Reposicion;
+import modelo.TipoTransaccion;
 import util.Constantes;
 import util.DateUtil;
 import util.ui.DocumentFilters;
@@ -30,6 +37,7 @@ public class Frm_Reposicion_Agregar extends javax.swing.JInternalFrame {
         this.ingresoController = new IngresoController();
         this.lbl_fecha.setText(DateUtil.obtenerFechaActual());
         aplicarEstilosInputs();
+        cargarTiposTransaccionEnCombo();
     }
 
     @SuppressWarnings("unchecked")
@@ -44,9 +52,12 @@ public class Frm_Reposicion_Agregar extends javax.swing.JInternalFrame {
         lbl_fecha = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         txt_descripcion = new javax.swing.JTextArea();
+        cbTipoTransaccion = new javax.swing.JComboBox<>();
+        jLabel4 = new javax.swing.JLabel();
         btn_aceptar = new javax.swing.JButton();
 
         setClosable(true);
+        setTitle("Reposicion de Caja");
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Datos de Reposicion", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Dialog", 0, 12))); // NOI18N
 
@@ -69,22 +80,27 @@ public class Frm_Reposicion_Agregar extends javax.swing.JInternalFrame {
         txt_descripcion.setRows(5);
         jScrollPane1.setViewportView(txt_descripcion);
 
+        jLabel4.setText("Tipo de Transaccion");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 86, Short.MAX_VALUE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 86, Short.MAX_VALUE)
+                        .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jLabel4))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(lbl_fecha, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txt_importe, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 272, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(15, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE)
+                    .addComponent(cbTipoTransaccion, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -97,11 +113,15 @@ public class Frm_Reposicion_Agregar extends javax.swing.JInternalFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel1)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(26, 26, 26)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(txt_importe, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txt_importe, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(cbTipoTransaccion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4))
+                .addContainerGap(13, Short.MAX_VALUE))
         );
 
         btn_aceptar.setText("Aceptar");
@@ -116,19 +136,23 @@ public class Frm_Reposicion_Agregar extends javax.swing.JInternalFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(btn_aceptar)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btn_aceptar)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addComponent(btn_aceptar)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pack();
@@ -153,7 +177,13 @@ public class Frm_Reposicion_Agregar extends javax.swing.JInternalFrame {
         String normalizedImporte = importeStr.replace(',', '.');
         BigDecimal importe = new BigDecimal(normalizedImporte);
         
-        /*int idTrans = this.ingresoController.guardarIngreso(cliente, importe, descripcion);
+        TipoTransaccion tipoSeleccionado = (TipoTransaccion) cbTipoTransaccion.getSelectedItem();
+        if (tipoSeleccionado == null) {
+                JOptionPane.showMessageDialog(this, "Debe seleccionar un tipo de transacción.", "Validación", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        
+        int idTrans = this.ingresoController.guardarIngreso(cliente, importe, descripcion, tipoSeleccionado.getId_tipo());
         if (idTrans > 0) {
             //JOptionPane.showMessageDialog(this, "Ingreso registrado correctamente (ID: " + idTrans + ").", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             txt_descripcion.setText("");
@@ -170,7 +200,7 @@ public class Frm_Reposicion_Agregar extends javax.swing.JInternalFrame {
                 this.dispose();
             }
 
-        } */
+        }
 
     }//GEN-LAST:event_btn_aceptarActionPerformed
 
@@ -186,13 +216,54 @@ public class Frm_Reposicion_Agregar extends javax.swing.JInternalFrame {
         DocumentFilters.attachDecimal(txt_importe, 20);
         UIHelpers.updatePlaceholderState(txt_importe);
     }
+    
+    /**
+     * Carga el combo cbTipoTransaccion con tipos activos de categorías INGRESO
+     * y REPOSICION.
+     */
+    private void cargarTiposTransaccionEnCombo() {
+        SwingWorker<List<TipoTransaccion>, Void> worker = new SwingWorker<List<TipoTransaccion>, Void>() {
+            @Override
+            protected List<TipoTransaccion> doInBackground() throws Exception {
+                try {
+                    TipoTransaccionDAO tipoDao = new TipoTransaccionDAO();
+                    List<String> categorias = Arrays.asList("REPOSICION");
+                    return tipoDao.listarPorCategorias(categorias);
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Error al listar tipos por categoría: {0}", ex.toString());
+                    return java.util.Collections.emptyList();
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<TipoTransaccion> lista = get();
+                    DefaultComboBoxModel<TipoTransaccion> model = new DefaultComboBoxModel<>();
+                    for (TipoTransaccion t : lista) {
+                        model.addElement(t);
+                    }
+                    cbTipoTransaccion.setModel(model);
+
+                    if (lista.isEmpty()) {
+                        LOGGER.log(Level.WARNING, "No hay tipos de transacción activos para INGRESO/REPOSICION");
+                    }
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Error al poblar combo tipos: {0}", ex.toString());
+                }
+            }
+        };
+        worker.execute();
+    }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_aceptar;
+    private javax.swing.JComboBox<TipoTransaccion> cbTipoTransaccion;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbl_fecha;
