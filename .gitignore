@@ -47,3 +47,18 @@ mvnw.cmd
 # Other
 *.orig
 *.rej
+
+# AI Configuration
+AGENTS.md
+.agent/
+*.md
+*.json
+*.log
+DATABASE_SCHEMA.md
+
+# Node.js and Environment
+node_modules/
+package-lock.json
+package.json
+scripts/
+.env*

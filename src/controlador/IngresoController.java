@@ -80,7 +80,8 @@ public class IngresoController {
         }
 
         try {
-            return transaccionDAO.guardarIngreso(idSesion, idUsuario, cliente.getId_cliente(), importe, descripcion, idTipo);
+            return transaccionDAO.guardarIngreso(idSesion, idUsuario, cliente.getId_cliente(), importe, descripcion,
+                    idTipo);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error en transaccionDAO.guardarIngreso", ex);
             return -1;
@@ -146,7 +147,7 @@ public class IngresoController {
             if (idSesion == -1) {
                 return java.util.Collections.emptyList();
             }
-            // Mostrar INGRESO y REPOSICION sin excluir al cliente de reposición
+            // Mostrar solo INGRESO
             return transaccionDAO.listarIngresosPorSesion(idSesion);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error listarIngresosPorSesionActiva", ex);
