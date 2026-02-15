@@ -120,6 +120,16 @@ public class EgresoController {
         }
     }
 
+    public List<Transaccion> obtenerHistorialEgresos(java.sql.Date inicio, java.sql.Date fin, String dniRuc,
+            Long idTipo, BigDecimal montoMin, BigDecimal montoMax) {
+        try {
+            return transaccionDAO.listarEgresosPorRangoFechas(inicio, fin, dniRuc, idTipo, montoMin, montoMax);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error en obtenerHistorialEgresos", ex);
+            return java.util.Collections.emptyList();
+        }
+    }
+
     public Transaccion obtenerTransaccionPorId(int idTrans) {
         return transaccionDAO.obtenerTransaccionPorId(idTrans);
     }
