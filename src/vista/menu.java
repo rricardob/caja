@@ -273,12 +273,13 @@ public class menu extends javax.swing.JFrame {
     }
 
     private void configurarItemsMenuEgresos() {
-        JMenu egresos = new JMenu("Egresos");
-
-        // menu_1.add(egresos);
         JMenuItem registroEgresos = new JMenuItem("Registro Egresos");
         registroEgresos.addActionListener(e -> abrirEgreso());
         menu_3.add(registroEgresos);
+
+        JMenuItem listadoEgresos = new JMenuItem("Listado de Egresos");
+        listadoEgresos.addActionListener(e -> abrirListadoEgresos());
+        menu_3.add(listadoEgresos);
     }
 
     private void configurarItemsMenuReposiciones() {
@@ -335,6 +336,27 @@ public class menu extends javax.swing.JFrame {
         desktop.add(frm_egreso);
         frm_egreso.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_egreso);
+    }
+
+    private void abrirListadoEgresos() {
+        // Verificar si ya está abierto
+        for (javax.swing.JInternalFrame f : desktop.getAllFrames()) {
+            if (f instanceof Frm_Listado_Egreso) {
+                try {
+                    f.setIcon(false);
+                    f.setSelected(true);
+                    f.toFront();
+                } catch (java.beans.PropertyVetoException ex) {
+                    System.err.println("Error al enfocar Frm_Listado_Egreso: " + ex.getMessage());
+                }
+                return;
+            }
+        }
+        Frm_Listado_Egreso frm = new Frm_Listado_Egreso();
+        frm.pack();
+        desktop.add(frm);
+        frm.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm);
     }
 
     private void abrirCliente() {

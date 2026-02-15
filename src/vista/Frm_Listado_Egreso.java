@@ -1,6 +1,6 @@
 package vista;
 
-import controlador.IngresoController;
+import controlador.EgresoController;
 import java.awt.BorderLayout;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -10,9 +10,9 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import modelo.SessionManager;
 import modelo.Transaccion;
-import util.ViewUtil;
 import modelo.TipoTransaccion;
 import dao.TipoTransaccionDAO;
+import com.toedter.calendar.JDateChooser;
 import java.awt.Color;
 import java.awt.Component;
 import java.math.BigDecimal;
@@ -29,25 +29,22 @@ import vista.components.PaginationPanel;
 import vista.dataTableModel.PaginatedTableModel;
 import vista.dataTableModel.TransaccionTableModel;
 
-/**
- * Formulario de listado de ingresos con filtros y paginación.
- */
-public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
+public class Frm_Listado_Egreso extends javax.swing.JInternalFrame {
 
-        private final IngresoController controller;
+        private final EgresoController controller;
         private final SessionManager session;
         private final TransaccionTableModel tableModel;
         private final PaginatedTableModel<Transaccion> paginatedModel;
         private final PaginationPanel paginationPanel;
-        private static final Logger LOGGER = Logger.getLogger(Frm_Listado_Ingreso.class.getName());
+        private static final Logger LOGGER = Logger.getLogger(Frm_Listado_Egreso.class.getName());
 
-        public Frm_Listado_Ingreso() {
+        public Frm_Listado_Egreso() {
                 initComponents();
-                this.controller = new IngresoController();
+                this.controller = new EgresoController();
                 this.session = SessionManager.getInstance();
 
                 // Configuración de JInternalFrame
-                setTitle("Listado de Ingresos");
+                setTitle("Listado de Egresos");
                 setClosable(true);
                 setIconifiable(true);
                 setMaximizable(true);
@@ -90,17 +87,18 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
                                         boolean isSelected, boolean hasFocus, int row, int column) {
 
                                 JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected,
-                                                hasFocus, row, column);
+                                                hasFocus, row,
+                                                column);
 
                                 if (value instanceof BigDecimal) {
-                                        label.setText("+ " + formatter.format(value));
+                                        label.setText("- " + formatter.format(value));
                                 }
 
                                 label.setHorizontalAlignment(JLabel.RIGHT);
 
                                 if (!isSelected) {
-                                        label.setBackground(new Color(230, 255, 230)); // Verde muy suave
-                                        label.setForeground(new Color(0, 100, 0)); // Verde oscuro
+                                        label.setBackground(new Color(255, 235, 235)); // Rojo muy suave
+                                        label.setForeground(new Color(150, 0, 0)); // Rojo oscuro
                                 } else {
                                         label.setForeground(Color.WHITE);
                                 }
@@ -121,7 +119,7 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
                 UIHelpers.attachHintAndFocusColor(txt_monto_min, "Monto mínimo (mayor a 0)");
                 UIHelpers.attachHintAndFocusColor(txt_monto_max, "Monto máximo (mayor a monto mínimo)");
 
-                // Placeholders (ya configurados en UI, pero aseguramos estado inicial)
+                // Placeholders
                 UIHelpers.attachPlaceholder(txt_dni_ruc, " DNI / RUC");
                 UIHelpers.attachPlaceholder(txt_monto_min, " Monto Min");
                 UIHelpers.attachPlaceholder(txt_monto_max, " Monto Max");
@@ -133,7 +131,7 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
                         protected List<TipoTransaccion> doInBackground() throws Exception {
                                 try {
                                         TipoTransaccionDAO tipoDao = new TipoTransaccionDAO();
-                                        List<String> categorias = Arrays.asList("INGRESO");
+                                        List<String> categorias = Arrays.asList("EGRESO");
                                         return tipoDao.listarPorCategorias(categorias);
                                 } catch (Exception ex) {
                                         LOGGER.log(Level.SEVERE, "Error al listar tipos por categoría", ex);
@@ -237,7 +235,6 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
                                                 return;
                                         }
                                 } catch (NumberFormatException e) {
-                                        // Ignorado por el filtro pero por seguridad...
                                 }
                         }
 
@@ -264,21 +261,25 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
                                 return;
                         }
 
-                        List<Transaccion> lista = controller.obtenerHistorialIngresos(inicio, fin, dniRuc, idTipo,
+                        List<Transaccion> lista = controller.obtenerHistorialEgresos(inicio, fin, dniRuc, idTipo,
                                         montoMin,
                                         montoMax);
                         paginatedModel.loadAllData(lista);
                         actualizarInfoPaginacion();
                         paginationPanel.enableAll(!lista.isEmpty());
                 } catch (Exception ex) {
-                        LOGGER.log(Level.SEVERE, "Error al cargar ingresos", ex);
+                        LOGGER.log(Level.SEVERE, "Error al cargar egresos", ex);
                         JOptionPane.showMessageDialog(this, "Error al cargar datos.", "Error",
                                         JOptionPane.ERROR_MESSAGE);
                 }
         }
 
+        /**
+         * This method is called from within the constructor to initialize the form.
+         * WARNING: Do NOT modify this code. The content of this method is always
+         * regenerated by the Form Editor.
+         */
         @SuppressWarnings("unchecked")
-        // <editor-fold defaultstate="collapsed" desc="Generated
         // <editor-fold defaultstate="collapsed" desc="Generated
         // Code">//GEN-BEGIN:initComponents
         private void initComponents() {
@@ -326,7 +327,7 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
 
                 jLabel2.setText("DNI / RUC : ");
 
-                jLabel3.setText("Tipo Ingreso :");
+                jLabel3.setText("Tipo Egreso :");
 
                 jLabel4.setText("Monto Desde : ");
 
@@ -338,9 +339,10 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
                                 panel_filtro2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                                 .addGroup(panel_filtro2Layout.createSequentialGroup()
                                                                 .addGap(10, 10, 10)
-                                                                .addGroup(panel_filtro2Layout.createParallelGroup(
-                                                                                javax.swing.GroupLayout.Alignment.LEADING,
-                                                                                false)
+                                                                .addGroup(panel_filtro2Layout
+                                                                                .createParallelGroup(
+                                                                                                javax.swing.GroupLayout.Alignment.LEADING,
+                                                                                                false)
                                                                                 .addGroup(panel_filtro2Layout
                                                                                                 .createSequentialGroup()
                                                                                                 .addComponent(jLabel4)
@@ -360,8 +362,9 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
                                                                                                                 121,
                                                                                                                 javax.swing.GroupLayout.PREFERRED_SIZE)))
                                                                 .addGap(28, 28, 28)
-                                                                .addGroup(panel_filtro2Layout.createParallelGroup(
-                                                                                javax.swing.GroupLayout.Alignment.LEADING)
+                                                                .addGroup(panel_filtro2Layout
+                                                                                .createParallelGroup(
+                                                                                                javax.swing.GroupLayout.Alignment.LEADING)
                                                                                 .addGroup(panel_filtro2Layout
                                                                                                 .createSequentialGroup()
                                                                                                 .addComponent(jLabel1)
@@ -380,8 +383,9 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
                                                                                                                 125,
                                                                                                                 javax.swing.GroupLayout.PREFERRED_SIZE)))
                                                                 .addGap(28, 28, 28)
-                                                                .addGroup(panel_filtro2Layout.createParallelGroup(
-                                                                                javax.swing.GroupLayout.Alignment.LEADING)
+                                                                .addGroup(panel_filtro2Layout
+                                                                                .createParallelGroup(
+                                                                                                javax.swing.GroupLayout.Alignment.LEADING)
                                                                                 .addComponent(btn_buscar2,
                                                                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                                                                 190,
@@ -396,9 +400,10 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
                                                                                                                 137,
                                                                                                                 javax.swing.GroupLayout.PREFERRED_SIZE)))
                                                                 .addGap(28, 28, 28)
-                                                                .addGroup(panel_filtro2Layout.createParallelGroup(
-                                                                                javax.swing.GroupLayout.Alignment.LEADING,
-                                                                                false)
+                                                                .addGroup(panel_filtro2Layout
+                                                                                .createParallelGroup(
+                                                                                                javax.swing.GroupLayout.Alignment.LEADING,
+                                                                                                false)
                                                                                 .addGroup(panel_filtro2Layout
                                                                                                 .createSequentialGroup()
                                                                                                 .addComponent(jLabel2)
@@ -410,13 +415,15 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
                                                                                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
                                                                                 .addComponent(btn_reporte,
                                                                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                                                190, Short.MAX_VALUE))
+                                                                                                190,
+                                                                                                Short.MAX_VALUE))
                                                                 .addGap(10, 10, 10)));
                 panel_filtro2Layout.setVerticalGroup(
                                 panel_filtro2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                                 .addGroup(panel_filtro2Layout.createSequentialGroup()
-                                                                .addGroup(panel_filtro2Layout.createParallelGroup(
-                                                                                javax.swing.GroupLayout.Alignment.LEADING)
+                                                                .addGroup(panel_filtro2Layout
+                                                                                .createParallelGroup(
+                                                                                                javax.swing.GroupLayout.Alignment.LEADING)
                                                                                 .addGroup(panel_filtro2Layout
                                                                                                 .createSequentialGroup()
                                                                                                 .addGap(15, 15, 15)
@@ -451,8 +458,9 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
                                                                                                                 .addContainerGap()
                                                                                                                 .addComponent(jLabel2)))
                                                                 .addGap(18, 18, 18)
-                                                                .addGroup(panel_filtro2Layout.createParallelGroup(
-                                                                                javax.swing.GroupLayout.Alignment.BASELINE)
+                                                                .addGroup(panel_filtro2Layout
+                                                                                .createParallelGroup(
+                                                                                                javax.swing.GroupLayout.Alignment.BASELINE)
                                                                                 .addComponent(btn_reporte)
                                                                                 .addComponent(btn_buscar2)
                                                                                 .addComponent(jLabel4)
@@ -467,7 +475,7 @@ public class Frm_Listado_Ingreso extends javax.swing.JInternalFrame {
                                                                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
                                                                 .addGap(15, 15, 15)));
 
-                jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Listado De Registro - Ingresos"));
+                jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Listado De Registro - Egresos"));
 
                 jTable1.setModel(new javax.swing.table.DefaultTableModel(
                                 new Object[][] {

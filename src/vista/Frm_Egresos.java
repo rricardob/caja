@@ -6,18 +6,24 @@ import controlador.EgresoController;
 import modelo.Cliente;
 import modelo.Transaccion;
 import dao.TipoTransaccionDAO;
+import java.awt.Color;
+import java.awt.Component;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JOptionPane;
-import javax.swing.SwingWorker;
 import modelo.TipoTransaccion;
+import util.validation.ValidationResult;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.SwingWorker;
+import javax.swing.table.DefaultTableCellRenderer;
 import util.ui.DocumentFilters;
 import util.ui.UIHelpers;
-import util.validation.ValidationResult;
 import vista.dataTableModel.TransaccionTableModel;
 import vista.dataTableModel.PaginatedTableModel;
 import vista.components.PaginationPanel;
@@ -51,6 +57,8 @@ public class Frm_Egresos extends javax.swing.JInternalFrame {
         // Inicializar el table model y asignarlo
         transaccionTableModel = new TransaccionTableModel();
         jTable1.setModel(transaccionTableModel);
+
+        setupTableAesthetics();
 
         // Acción de doble clic para abrir edición
         jTable1.addMouseListener(new MouseAdapter() {
@@ -97,17 +105,55 @@ public class Frm_Egresos extends javax.swing.JInternalFrame {
         UIHelpers.updatePlaceholderState(txtDireccion);
 
         // Aplicar filtros
+        setupFilterBehavior();
+
+        // Actualizar Estado
+        UIHelpers.updatePlaceholderState(txtDoc);
+        UIHelpers.updatePlaceholderState(txtDescripcionArea);
+        UIHelpers.updatePlaceholderState(txtImporte);
+    }
+
+    private void setupTableAesthetics() {
+        // Renderizador para la columna Importe (índice 5 en TransaccionTableModel)
+        jTable1.getColumnModel().getColumn(5).setCellRenderer(new DefaultTableCellRenderer() {
+            private final DecimalFormat formatter = new DecimalFormat("#,##0.00");
+
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+
+                JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+                        column);
+
+                if (value instanceof BigDecimal) {
+                    label.setText("- " + formatter.format(value));
+                }
+
+                label.setHorizontalAlignment(JLabel.RIGHT);
+
+                if (!isSelected) {
+                    label.setBackground(new Color(255, 235, 235)); // Rojo muy suave
+                    label.setForeground(new Color(150, 0, 0)); // Rojo oscuro
+                } else {
+                    label.setForeground(Color.WHITE);
+                }
+
+                return label;
+            }
+        });
+    }
+
+    private void setupFilterBehavior() {
         DocumentFilters.attachNumeric(txtDoc, 11);
-        DocumentFilters.attachDecimal(txtImporte, 20);
+        DocumentFilters.attachDecimal(txtImporte, 12);
         DocumentFilters.attachTextAreaLimit(txtDescripcionArea, 200);
 
-        // Tooltips + efecto "azul al foco"
-        UIHelpers.attachHintAndFocusColor(txtDoc, "Ingrese DNI o RUC (8-11 dígitos).");
+        // Hints y placeholders
+        UIHelpers.attachHintAndFocusColor(txtDoc, "DNI/RUC: Ingrese 8 u 11 dígitos");
         UIHelpers.attachHintAndFocusColor(txtDescripcionArea, "Descripción (5-200 caracteres).");
-        UIHelpers.attachHintAndFocusColor(txtImporte, "Importe (>= 1). Puede usar coma o punto decimal.");
+        UIHelpers.attachHintAndFocusColor(txtImporte, "Importe (mayor a 0)");
 
-        // Placeholders
-        UIHelpers.attachPlaceholder(txtDoc, " DNI o RUC");
+        UIHelpers.attachPlaceholder(txtDoc, " DNI / RUC");
         UIHelpers.attachPlaceholder(txtDescripcionArea, " Motivo o Descripción");
         UIHelpers.attachPlaceholder(txtImporte, " Importe");
 
