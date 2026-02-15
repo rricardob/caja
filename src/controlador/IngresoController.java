@@ -163,4 +163,18 @@ public class IngresoController {
         return transaccionDAO.obtenerTransaccionPorId(idTrans);
     }
 
+    /**
+     * Obtiene el historial de ingresos con filtros avanzados.
+     */
+    public List<Transaccion> obtenerHistorialIngresos(java.sql.Date fechaInicio, java.sql.Date fechaFin,
+            String dniRuc, Long idTipo, java.math.BigDecimal montoMin, java.math.BigDecimal montoMax) {
+        try {
+            return transaccionDAO.listarIngresosPorRangoFechas(fechaInicio, fechaFin, dniRuc, idTipo, montoMin,
+                    montoMax);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error obtenerHistorialIngresos avanzado", ex);
+            return java.util.Collections.emptyList();
+        }
+    }
+
 }

@@ -263,12 +263,13 @@ public class menu extends javax.swing.JFrame {
     }
 
     private void configurarItemsMenuIngresos() {
-        JMenu ingresos = new JMenu("Ingresos");
         JMenuItem registroIngresos = new JMenuItem("Registro Ingresos");
         registroIngresos.addActionListener(e -> abrirIngreso());
-        ingresos.add(registroIngresos);
-        // menu_1.add(ingresos);
         menu_3.add(registroIngresos);
+
+        JMenuItem listadoIngresos = new JMenuItem("Listado de Ingresos");
+        listadoIngresos.addActionListener(e -> abrirListadoIngresos());
+        menu_3.add(listadoIngresos);
     }
 
     private void configurarItemsMenuEgresos() {
@@ -305,6 +306,27 @@ public class menu extends javax.swing.JFrame {
         desktop.add(frm_ingreso);
         frm_ingreso.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_ingreso);
+    }
+
+    private void abrirListadoIngresos() {
+        // Verificar si ya está abierto
+        for (javax.swing.JInternalFrame f : desktop.getAllFrames()) {
+            if (f instanceof Frm_Listado_Ingreso) {
+                try {
+                    f.setIcon(false);
+                    f.setSelected(true);
+                    f.toFront();
+                } catch (java.beans.PropertyVetoException ex) {
+                    System.err.println("Error al enfocar Frm_Listado_Ingreso: " + ex.getMessage());
+                }
+                return;
+            }
+        }
+        Frm_Listado_Ingreso frm = new Frm_Listado_Ingreso();
+        frm.pack();
+        desktop.add(frm);
+        frm.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm);
     }
 
     private void abrirEgreso() {
