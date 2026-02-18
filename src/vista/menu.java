@@ -180,6 +180,7 @@ public class menu extends javax.swing.JFrame {
             configurarItemsMenuCaja();
             configurarItemsMenuTipoTransacciones();
             configurarMenuUsuarios();
+            configurarItemsMenuBanco();
             menu_bar.add(menu_1);
             menu_bar.add(menu_3);
         }
@@ -286,6 +287,17 @@ public class menu extends javax.swing.JFrame {
         reposiciones.add(registroReposicion);
         reposiciones.add(listadoReposicion);
         menu_1.add(reposiciones);
+    }
+    
+    private void configurarItemsMenuBanco(){
+        JMenu banco = new JMenu("Banco");
+        JMenuItem registroBanco = new JMenuItem("Registro Banco");
+        registroBanco.addActionListener(e -> abrirRegistroBanco());
+        JMenuItem registroCuentaBanco = new JMenuItem("Registro Cuenta Banco");
+        registroCuentaBanco.addActionListener(e -> abrirRegistroCuentaBanco());
+        banco.add(registroBanco);
+        banco.add(registroCuentaBanco);
+        menu_1.add(banco);
     }
 
     private void abrirCaja() {
@@ -415,6 +427,22 @@ public class menu extends javax.swing.JFrame {
         frm_Listado_Reposicion.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_Listado_Reposicion);
     }
+    
+    private void abrirRegistroBanco() {
+        Frm_Listado_Banco frm_listado_banco = new Frm_Listado_Banco();
+        frm_listado_banco.pack();
+        desktop.add(frm_listado_banco);
+        frm_listado_banco.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm_listado_banco);
+    }
+    
+    private void abrirRegistroCuentaBanco() {
+        Frm_Registro_Cuenta_Banco frm_Registro_Cuenta_Banco = new Frm_Registro_Cuenta_Banco();
+        frm_Registro_Cuenta_Banco.pack();
+        desktop.add(frm_Registro_Cuenta_Banco);
+        frm_Registro_Cuenta_Banco.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm_Registro_Cuenta_Banco);
+    }
 
     private void abrirUsuario() {
         Frm_Listado_Usuarios frm_usuarios = new Frm_Listado_Usuarios();
@@ -423,7 +451,7 @@ public class menu extends javax.swing.JFrame {
         frm_usuarios.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_usuarios);
     }
-
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JDesktopPane desktop;
     private javax.swing.JMenuItem jMenuItem1;
