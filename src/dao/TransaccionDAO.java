@@ -16,7 +16,8 @@ public class TransaccionDAO {
     /**
      * Guarda una transacción con categoria de tipo INGRESO.
      */
-    public int guardarIngreso(int idSesion, int idUsuario, int idCliente, BigDecimal importe, String descripcion, long idTipo) {
+    public int guardarIngreso(int idSesion, int idUsuario, int idCliente, BigDecimal importe, String descripcion,
+            long idTipo) {
         Connection conn = null;
         PreparedStatement pstInsertTrans = null;
         PreparedStatement pstInsertRegistro = null;
@@ -272,8 +273,7 @@ public class TransaccionDAO {
 
     public List<Transaccion> listarIngresosPorSesion(int idSesion) {
         List<Transaccion> lista = new ArrayList<>();
-        String sql
-                = "SELECT t.id_transaccion, t.id_sesion, t.id_usuario, t.id_tipo, t.id_cliente, "
+        String sql = "SELECT t.id_transaccion, t.id_sesion, t.id_usuario, t.id_tipo, t.id_cliente, "
                 + "       t.importe, t.descripcion, t.fecha_creacion, "
                 + "       c.nombre_completo, c.doc_identidad, c.direccion, c.ruc, "
                 + "       tt.descripcion AS tipo_descripcion "
@@ -281,7 +281,7 @@ public class TransaccionDAO {
                 + "JOIN clientes c ON t.id_cliente = c.id_cliente "
                 + "JOIN tipo_transacciones tt ON t.id_tipo = tt.id_tipo "
                 + "JOIN categoria_transacciones ct ON tt.id_categoria_transacciones = ct.id_categoria_transacciones "
-                + "WHERE t.id_sesion = ? AND ct.descripcion IN ('INGRESO','REPOSICION') "
+                + "WHERE t.id_sesion = ? AND ct.descripcion = 'INGRESO' "
                 + "ORDER BY t.fecha_creacion DESC";
         try (Connection conn = ConexionDB.obtenerConexion();
                 PreparedStatement pst = conn.prepareStatement(sql)) {
@@ -297,10 +297,161 @@ public class TransaccionDAO {
         return lista;
     }
 
-    public List<Transaccion> listarIngresosPorSesionExcludingClient(int idSesion, int excludeClientId) {
+    /**
+     * Lista ingresos por rango de fechas (opcional).
+     * Si las fechas son null, busca todos los ingresos.
+     */
+    /**
+     * Lista ingresos por rango de fechas y otros filtros opcionales.
+     */
+    public List<Transaccion> listarIngresosPorRangoFechas(Date fechaInicio, Date fechaFin, String dniRuc,
+            Long idTipo, java.math.BigDecimal montoMin, java.math.BigDecimal montoMax) {
         List<Transaccion> lista = new ArrayList<>();
-        String sql
-                = "SELECT t.id_transaccion, t.id_sesion, t.id_usuario, t.id_tipo, t.id_cliente, "
+        StringBuilder sqlBuilder = new StringBuilder(
+                "SELECT t.id_transaccion, t.id_sesion, t.id_usuario, t.id_tipo, t.id_cliente, "
+                        + "       t.importe, t.descripcion, t.fecha_creacion, "
+                        + "       c.nombre_completo, c.doc_identidad, c.direccion, c.ruc, "
+                        + "       tt.descripcion AS tipo_descripcion "
+                        + "FROM transacciones t "
+                        + "JOIN clientes c ON t.id_cliente = c.id_cliente "
+                        + "JOIN tipo_transacciones tt ON t.id_tipo = tt.id_tipo "
+                        + "JOIN categoria_transacciones ct ON tt.id_categoria_transacciones = ct.id_categoria_transacciones "
+                        + "WHERE ct.descripcion = 'INGRESO' ");
+
+        if (fechaInicio != null) {
+            sqlBuilder.append(" AND DATE(t.fecha_creacion) >= ? ");
+        }
+        if (fechaFin != null) {
+            sqlBuilder.append(" AND DATE(t.fecha_creacion) <= ? ");
+        }
+        if (dniRuc != null && !dniRuc.trim().isEmpty()) {
+            sqlBuilder.append(" AND (c.doc_identidad LIKE ? OR c.ruc LIKE ?) ");
+        }
+        if (idTipo != null && idTipo > 0) {
+            sqlBuilder.append(" AND t.id_tipo = ? ");
+        }
+        if (montoMin != null) {
+            sqlBuilder.append(" AND t.importe >= ? ");
+        }
+        if (montoMax != null) {
+            sqlBuilder.append(" AND t.importe <= ? ");
+        }
+
+        sqlBuilder.append(" ORDER BY t.fecha_creacion DESC");
+
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sqlBuilder.toString())) {
+
+            int paramIndex = 1;
+            if (fechaInicio != null) {
+                pst.setDate(paramIndex++, fechaInicio);
+            }
+            if (fechaFin != null) {
+                pst.setDate(paramIndex++, fechaFin);
+            }
+            if (dniRuc != null && !dniRuc.trim().isEmpty()) {
+                String search = "%" + dniRuc.trim() + "%";
+                pst.setString(paramIndex++, search);
+                pst.setString(paramIndex++, search);
+            }
+            if (idTipo != null && idTipo > 0) {
+                pst.setLong(paramIndex++, idTipo);
+            }
+            if (montoMin != null) {
+                pst.setBigDecimal(paramIndex++, montoMin);
+            }
+            if (montoMax != null) {
+                pst.setBigDecimal(paramIndex++, montoMax);
+            }
+
+            try (ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error listarIngresosPorRangoFechas avanzado", ex);
+        }
+        return lista;
+    }
+
+    public List<Transaccion> listarEgresosPorRangoFechas(Date fechaInicio, Date fechaFin, String dniRuc,
+            Long idTipo, java.math.BigDecimal montoMin, java.math.BigDecimal montoMax) {
+        List<Transaccion> lista = new ArrayList<>();
+        StringBuilder sqlBuilder = new StringBuilder(
+                "SELECT t.id_transaccion, t.id_sesion, t.id_usuario, t.id_tipo, t.id_cliente, "
+                        + "       t.importe, t.descripcion, t.fecha_creacion, "
+                        + "       c.nombre_completo, c.doc_identidad, c.direccion, c.ruc, "
+                        + "       tt.descripcion AS tipo_descripcion "
+                        + "FROM transacciones t "
+                        + "JOIN clientes c ON t.id_cliente = c.id_cliente "
+                        + "JOIN tipo_transacciones tt ON t.id_tipo = tt.id_tipo "
+                        + "JOIN categoria_transacciones ct ON tt.id_categoria_transacciones = ct.id_categoria_transacciones "
+                        + "WHERE ct.descripcion = 'EGRESO' ");
+
+        if (fechaInicio != null) {
+            sqlBuilder.append(" AND DATE(t.fecha_creacion) >= ? ");
+        }
+        if (fechaFin != null) {
+            sqlBuilder.append(" AND DATE(t.fecha_creacion) <= ? ");
+        }
+        if (dniRuc != null && !dniRuc.trim().isEmpty()) {
+            sqlBuilder.append(" AND (c.doc_identidad LIKE ? OR c.ruc LIKE ?) ");
+        }
+        if (idTipo != null && idTipo > 0) {
+            sqlBuilder.append(" AND t.id_tipo = ? ");
+        }
+        if (montoMin != null) {
+            sqlBuilder.append(" AND t.importe >= ? ");
+        }
+        if (montoMax != null) {
+            sqlBuilder.append(" AND t.importe <= ? ");
+        }
+
+        sqlBuilder.append(" ORDER BY t.fecha_creacion DESC");
+
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sqlBuilder.toString())) {
+
+            int paramIndex = 1;
+            if (fechaInicio != null) {
+                pst.setDate(paramIndex++, fechaInicio);
+            }
+            if (fechaFin != null) {
+                pst.setDate(paramIndex++, fechaFin);
+            }
+            if (dniRuc != null && !dniRuc.trim().isEmpty()) {
+                String search = "%" + dniRuc.trim() + "%";
+                pst.setString(paramIndex++, search);
+                pst.setString(paramIndex++, search);
+            }
+            if (idTipo != null && idTipo > 0) {
+                pst.setLong(paramIndex++, idTipo);
+            }
+            if (montoMin != null) {
+                pst.setBigDecimal(paramIndex++, montoMin);
+            }
+            if (montoMax != null) {
+                pst.setBigDecimal(paramIndex++, montoMax);
+            }
+
+            try (ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error listarEgresosPorRangoFechas avanzado", ex);
+        }
+        return lista;
+    }
+
+    /**
+     * Lista los egresos de una sesión específica.
+     */
+    public List<Transaccion> listarEgresosPorSesion(int idSesion) {
+        List<Transaccion> lista = new ArrayList<>();
+        String sql = "SELECT t.id_transaccion, t.id_sesion, t.id_usuario, t.id_tipo, t.id_cliente, "
                 + "       t.importe, t.descripcion, t.fecha_creacion, "
                 + "       c.nombre_completo, c.doc_identidad, c.direccion, c.ruc, "
                 + "       tt.descripcion AS tipo_descripcion "
@@ -308,7 +459,33 @@ public class TransaccionDAO {
                 + "JOIN clientes c ON t.id_cliente = c.id_cliente "
                 + "JOIN tipo_transacciones tt ON t.id_tipo = tt.id_tipo "
                 + "JOIN categoria_transacciones ct ON tt.id_categoria_transacciones = ct.id_categoria_transacciones "
-                + "WHERE t.id_sesion = ? AND ct.descripcion IN ('INGRESO','REPOSICION') AND t.id_cliente <> ? "
+                + "WHERE t.id_sesion = ? AND ct.descripcion = 'EGRESO' "
+                + "ORDER BY t.fecha_creacion DESC";
+        try (Connection conn = ConexionDB.obtenerConexion();
+                PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, idSesion);
+            try (ResultSet rs = pst.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error listarEgresosPorSesion", ex);
+        }
+        return lista;
+    }
+
+    public List<Transaccion> listarIngresosPorSesionExcludingClient(int idSesion, int excludeClientId) {
+        List<Transaccion> lista = new ArrayList<>();
+        String sql = "SELECT t.id_transaccion, t.id_sesion, t.id_usuario, t.id_tipo, t.id_cliente, "
+                + "       t.importe, t.descripcion, t.fecha_creacion, "
+                + "       c.nombre_completo, c.doc_identidad, c.direccion, c.ruc, "
+                + "       tt.descripcion AS tipo_descripcion "
+                + "FROM transacciones t "
+                + "JOIN clientes c ON t.id_cliente = c.id_cliente "
+                + "JOIN tipo_transacciones tt ON t.id_tipo = tt.id_tipo "
+                + "JOIN categoria_transacciones ct ON tt.id_categoria_transacciones = ct.id_categoria_transacciones "
+                + "WHERE t.id_sesion = ? AND ct.descripcion = 'INGRESO' AND t.id_cliente <> ? "
                 + "ORDER BY t.fecha_creacion DESC";
         try (Connection conn = ConexionDB.obtenerConexion();
                 PreparedStatement pst = conn.prepareStatement(sql)) {
@@ -326,8 +503,7 @@ public class TransaccionDAO {
     }
 
     public Transaccion obtenerTransaccionPorId(int idTransaccion) {
-        String sql
-                = "SELECT t.id_transaccion, t.id_sesion, t.id_usuario, t.id_tipo, t.id_cliente, t.importe, t.descripcion, t.fecha_creacion, "
+        String sql = "SELECT t.id_transaccion, t.id_sesion, t.id_usuario, t.id_tipo, t.id_cliente, t.importe, t.descripcion, t.fecha_creacion, "
                 + "       c.nombre_completo, c.doc_identidad, c.direccion, c.ruc, "
                 + "       tt.descripcion AS tipo_descripcion "
                 + "FROM transacciones t "
@@ -364,7 +540,7 @@ public class TransaccionDAO {
         t.setDoc_identidad(rs.getString("doc_identidad"));
         t.setDireccion(rs.getString("direccion"));
         t.setRuc(rs.getString("ruc"));
-        // Campo Descripción del tipo transitorios 
+        // Campo Descripción del tipo transitorios
         try {
             t.setTipoDescripcion(rs.getString("tipo_descripcion"));
         } catch (SQLException ignore) {

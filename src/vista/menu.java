@@ -30,7 +30,8 @@ public class menu extends javax.swing.JFrame {
     }
 
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated
+    // Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         desktop = new javax.swing.JDesktopPane();
@@ -50,13 +51,11 @@ public class menu extends javax.swing.JFrame {
         javax.swing.GroupLayout desktopLayout = new javax.swing.GroupLayout(desktop);
         desktop.setLayout(desktopLayout);
         desktopLayout.setHorizontalGroup(
-            desktopLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1073, Short.MAX_VALUE)
-        );
+                desktopLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 1073, Short.MAX_VALUE));
         desktopLayout.setVerticalGroup(
-            desktopLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 728, Short.MAX_VALUE)
-        );
+                desktopLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 728, Short.MAX_VALUE));
 
         jToolBar1.setRollover(true);
 
@@ -91,26 +90,30 @@ public class menu extends javax.swing.JFrame {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(desktop)
-            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(desktop)
+                        .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(desktop)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addComponent(desktop)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+        // <editor-fold defaultstate="collapsed" desc=" Look and feel setting code
+        // (optional) ">
+        /*
+         * If Nimbus (introduced in Java SE 6) is not available, stay with the default
+         * look and feel.
+         * For details see
+         * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -128,8 +131,8 @@ public class menu extends javax.swing.JFrame {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(menu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-        //</editor-fold>
+        // </editor-fold>
+        // </editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -168,7 +171,7 @@ public class menu extends javax.swing.JFrame {
 
         menu_bar.revalidate();
         menu_bar.repaint();
-        //menu_bar.add(menu_1);
+        // menu_bar.add(menu_1);
     }
 
     private void configurarMenuTransacciones() {
@@ -232,7 +235,7 @@ public class menu extends javax.swing.JFrame {
 
             JMenuItem itemReporteGeneral = new JMenuItem("Reporte General");
             ConfigurarMenuItemSalir(menu_2);
-            //itemReporteGeneral.addActionListener(e -> );
+            // itemReporteGeneral.addActionListener(e -> );
 
             menu_2.add(itemReporteGeneral);
             menu_bar.add(menu_2);
@@ -261,21 +264,23 @@ public class menu extends javax.swing.JFrame {
     }
 
     private void configurarItemsMenuIngresos() {
-        JMenu ingresos = new JMenu("Ingresos");
         JMenuItem registroIngresos = new JMenuItem("Registro Ingresos");
         registroIngresos.addActionListener(e -> abrirIngreso());
-        ingresos.add(registroIngresos);
-        //menu_1.add(ingresos);
         menu_3.add(registroIngresos);
+
+        JMenuItem listadoIngresos = new JMenuItem("Listado de Ingresos");
+        listadoIngresos.addActionListener(e -> abrirListadoIngresos());
+        menu_3.add(listadoIngresos);
     }
 
     private void configurarItemsMenuEgresos() {
-        JMenu egresos = new JMenu("Egresos");
-
-        //menu_1.add(egresos);
         JMenuItem registroEgresos = new JMenuItem("Registro Egresos");
         registroEgresos.addActionListener(e -> abrirEgreso());
         menu_3.add(registroEgresos);
+
+        JMenuItem listadoEgresos = new JMenuItem("Listado de Egresos");
+        listadoEgresos.addActionListener(e -> abrirListadoEgresos());
+        menu_3.add(listadoEgresos);
     }
 
     private void configurarItemsMenuReposiciones() {
@@ -316,8 +321,54 @@ public class menu extends javax.swing.JFrame {
         ViewUtil.centerScreen(desktop, frm_ingreso);
     }
 
+    private void abrirListadoIngresos() {
+        // Verificar si ya está abierto
+        for (javax.swing.JInternalFrame f : desktop.getAllFrames()) {
+            if (f instanceof Frm_Listado_Ingreso) {
+                try {
+                    f.setIcon(false);
+                    f.setSelected(true);
+                    f.toFront();
+                } catch (java.beans.PropertyVetoException ex) {
+                    System.err.println("Error al enfocar Frm_Listado_Ingreso: " + ex.getMessage());
+                }
+                return;
+            }
+        }
+        Frm_Listado_Ingreso frm = new Frm_Listado_Ingreso();
+        frm.pack();
+        desktop.add(frm);
+        frm.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm);
+    }
+
     private void abrirEgreso() {
-        JOptionPane.showMessageDialog(this, "Registro de Egresos no implementado aún.");
+        Frm_Egresos frm_egreso = new Frm_Egresos();
+        frm_egreso.pack();
+        desktop.add(frm_egreso);
+        frm_egreso.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm_egreso);
+    }
+
+    private void abrirListadoEgresos() {
+        // Verificar si ya está abierto
+        for (javax.swing.JInternalFrame f : desktop.getAllFrames()) {
+            if (f instanceof Frm_Listado_Egreso) {
+                try {
+                    f.setIcon(false);
+                    f.setSelected(true);
+                    f.toFront();
+                } catch (java.beans.PropertyVetoException ex) {
+                    System.err.println("Error al enfocar Frm_Listado_Egreso: " + ex.getMessage());
+                }
+                return;
+            }
+        }
+        Frm_Listado_Egreso frm = new Frm_Listado_Egreso();
+        frm.pack();
+        desktop.add(frm);
+        frm.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm);
     }
 
     private void abrirCliente() {

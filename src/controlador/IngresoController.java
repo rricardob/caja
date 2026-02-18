@@ -80,7 +80,8 @@ public class IngresoController {
         }
 
         try {
-            return transaccionDAO.guardarIngreso(idSesion, idUsuario, cliente.getId_cliente(), importe, descripcion, idTipo);
+            return transaccionDAO.guardarIngreso(idSesion, idUsuario, cliente.getId_cliente(), importe, descripcion,
+                    idTipo);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error en transaccionDAO.guardarIngreso", ex);
             return -1;
@@ -146,7 +147,7 @@ public class IngresoController {
             if (idSesion == -1) {
                 return java.util.Collections.emptyList();
             }
-            // Mostrar INGRESO y REPOSICION sin excluir al cliente de reposición
+            // Mostrar solo INGRESO
             return transaccionDAO.listarIngresosPorSesion(idSesion);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error listarIngresosPorSesionActiva", ex);
@@ -160,6 +161,20 @@ public class IngresoController {
      */
     public Transaccion obtenerTransaccionPorId(int idTrans) {
         return transaccionDAO.obtenerTransaccionPorId(idTrans);
+    }
+
+    /**
+     * Obtiene el historial de ingresos con filtros avanzados.
+     */
+    public List<Transaccion> obtenerHistorialIngresos(java.sql.Date fechaInicio, java.sql.Date fechaFin,
+            String dniRuc, Long idTipo, java.math.BigDecimal montoMin, java.math.BigDecimal montoMax) {
+        try {
+            return transaccionDAO.listarIngresosPorRangoFechas(fechaInicio, fechaFin, dniRuc, idTipo, montoMin,
+                    montoMax);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error obtenerHistorialIngresos avanzado", ex);
+            return java.util.Collections.emptyList();
+        }
     }
 
 }
