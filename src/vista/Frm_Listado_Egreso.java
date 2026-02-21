@@ -28,6 +28,13 @@ import util.ui.UIHelpers;
 import vista.components.PaginationPanel;
 import vista.dataTableModel.PaginatedTableModel;
 import vista.dataTableModel.TransaccionTableModel;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.view.JasperViewer;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Frm_Listado_Egreso extends javax.swing.JInternalFrame {
 
@@ -570,7 +577,54 @@ public class Frm_Listado_Egreso extends javax.swing.JInternalFrame {
         }// GEN-LAST:event_btn_buscar2ActionPerformed
 
         private void btn_reporteActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btn_reporteActionPerformed
-                // Funcionalidad de reporte (pudiendo usar jasper reports mas adelante)
+                try {
+                        // 1. Obtener los datos actuales de la tabla (ya filtrados y paginados en el UI)
+                        List<Transaccion> listaDatos = tableModel.getData();
+
+                        if (listaDatos.isEmpty()) {
+                                JOptionPane.showMessageDialog(this, "No hay datos para generar el reporte.", "Aviso",
+                                                JOptionPane.INFORMATION_MESSAGE);
+                                return;
+                        }
+
+                        // 2. Preparar el DataSource
+                        JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(listaDatos);
+
+                        // 3. Parámetros
+                        Map<String, Object> parameters = new HashMap<>();
+                        String fechaDesde = dc_fecha_inicio.getDate() != null
+                                        ? new java.text.SimpleDateFormat("dd/MM/yyyy").format(dc_fecha_inicio.getDate())
+                                        : "N/A";
+                        String fechaHasta = dc_fecha_fin.getDate() != null
+                                        ? new java.text.SimpleDateFormat("dd/MM/yyyy").format(dc_fecha_fin.getDate())
+                                        : "N/A";
+
+                        parameters.put("FECHA_INICIO", fechaDesde);
+                        parameters.put("FECHA_FIN", fechaHasta);
+
+                        // 4. Cargar el reporte compilado (.jasper)
+                        InputStream reportStream = getClass().getResourceAsStream("/recursos/rpt_egresos.jasper");
+
+                        if (reportStream == null) {
+                                JOptionPane.showMessageDialog(this,
+                                                "No se encontró el archivo del reporte (rpt_egresos.jasper) en los recursos.",
+                                                "Error", JOptionPane.ERROR_MESSAGE);
+                                return;
+                        }
+
+                        // 5. Llenar el reporte
+                        JasperPrint jasperPrint = JasperFillManager.fillReport(reportStream, parameters, ds);
+
+                        // 6. Mostrar el reporte
+                        JasperViewer viewer = new JasperViewer(jasperPrint, false);
+                        viewer.setTitle("Visualizador de Reportes - Egresos");
+                        viewer.setVisible(true);
+
+                } catch (Exception ex) {
+                        LOGGER.log(Level.SEVERE, "Error al generar el reporte de egresos", ex);
+                        JOptionPane.showMessageDialog(this, "Error al generar el reporte: " + ex.getMessage(), "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                }
         }// GEN-LAST:event_btn_reporteActionPerformed
 
         // Variables declaration - do not modify//GEN-BEGIN:variables
