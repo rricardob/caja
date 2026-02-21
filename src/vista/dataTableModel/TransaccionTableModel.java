@@ -121,4 +121,8 @@ public class TransaccionTableModel extends AbstractTableModel {
         datos.set(rowIndex, t);
         fireTableRowsUpdated(rowIndex, rowIndex);
     }
+
+    public List<Transaccion> getData() {
+        return new ArrayList<>(datos);
+    }
 }
