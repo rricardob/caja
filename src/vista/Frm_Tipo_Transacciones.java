@@ -314,6 +314,11 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
         btnAdd1.setText("Crear");
 
         btnEdit1.setText("Editar");
+        btnEdit1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEdit1ActionPerformed(evt);
+            }
+        });
 
         btnDelete1.setText("Eliminar");
 
@@ -388,12 +393,9 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(10, 10, 10)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 790, Short.MAX_VALUE)
-                        .addGap(10, 10, 10))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(pnlPaginacion, javax.swing.GroupLayout.DEFAULT_SIZE, 790, Short.MAX_VALUE)
-                        .addGap(10, 10, 10))))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 790, Short.MAX_VALUE)
+                    .addComponent(pnlPaginacion, javax.swing.GroupLayout.DEFAULT_SIZE, 790, Short.MAX_VALUE))
+                .addGap(10, 10, 10))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -428,6 +430,10 @@ public class Frm_Tipo_Transacciones extends javax.swing.JInternalFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnEdit1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEdit1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnEdit1ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -183,6 +183,7 @@ public class menu extends javax.swing.JFrame {
             configurarItemsMenuCaja();
             configurarItemsMenuTipoTransacciones();
             configurarMenuUsuarios();
+            configurarItemsMenuBanco();
             menu_bar.add(menu_1);
             menu_bar.add(menu_3);
         }
@@ -292,7 +293,21 @@ public class menu extends javax.swing.JFrame {
         reposiciones.add(listadoReposicion);
         menu_1.add(reposiciones);
     }
-
+    
+    private void configurarItemsMenuBanco(){
+        JMenu banco = new JMenu("Banco");
+        JMenuItem registroBanco = new JMenuItem("Registro Banco");
+        registroBanco.addActionListener(e -> abrirRegistroBanco());
+        JMenuItem registroCuentaBanco = new JMenuItem("Registro Cuenta Banco");
+        registroCuentaBanco.addActionListener(e -> abrirRegistroCuentaBanco());
+        JMenuItem registroCuentaDeposito = new JMenuItem("Registro Cuenta Deposito");
+        registroCuentaDeposito.addActionListener(e -> abrirRegistroCuentaBancoDeposito());
+        banco.add(registroBanco);
+        banco.add(registroCuentaBanco);
+        banco.add(registroCuentaDeposito);
+        menu_1.add(banco);
+    }
+    
     private void abrirCaja() {
         Frm_Listado_Caja frm_caja = new Frm_Listado_Caja();
         frm_caja.pack();
@@ -466,6 +481,30 @@ public class menu extends javax.swing.JFrame {
         frm_Listado_Reposicion.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_Listado_Reposicion);
     }
+    
+    private void abrirRegistroBanco() {
+        Frm_Listado_Banco frm_listado_banco = new Frm_Listado_Banco();
+        frm_listado_banco.pack();
+        desktop.add(frm_listado_banco);
+        frm_listado_banco.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm_listado_banco);
+    }
+    
+    private void abrirRegistroCuentaBanco() {
+        Frm_Listado_Banco_Cuenta frm_Listado_Banco_Cuenta = new Frm_Listado_Banco_Cuenta();
+        frm_Listado_Banco_Cuenta.pack();
+        desktop.add(frm_Listado_Banco_Cuenta);
+        frm_Listado_Banco_Cuenta.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm_Listado_Banco_Cuenta);
+    }
+    
+    private void abrirRegistroCuentaBancoDeposito() {
+        Frm_Listado_Banco_Deposito frm_Listado_Banco_Deposito = new Frm_Listado_Banco_Deposito();
+        frm_Listado_Banco_Deposito.pack();
+        desktop.add(frm_Listado_Banco_Deposito);
+        frm_Listado_Banco_Deposito.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm_Listado_Banco_Deposito);
+    }
 
     private void abrirUsuario() {
         Frm_Listado_Usuarios frm_usuarios = new Frm_Listado_Usuarios();
@@ -474,7 +513,7 @@ public class menu extends javax.swing.JFrame {
         frm_usuarios.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_usuarios);
     }
-
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JDesktopPane desktop;
     private javax.swing.JMenuItem jMenuItem1;
