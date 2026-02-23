@@ -300,11 +300,14 @@ public class menu extends javax.swing.JFrame {
         registroBanco.addActionListener(e -> abrirRegistroBanco());
         JMenuItem registroCuentaBanco = new JMenuItem("Registro Cuenta Banco");
         registroCuentaBanco.addActionListener(e -> abrirRegistroCuentaBanco());
+        JMenuItem registroCuentaDeposito = new JMenuItem("Registro Cuenta Deposito");
+        registroCuentaDeposito.addActionListener(e -> abrirRegistroCuentaBancoDeposito());
         banco.add(registroBanco);
         banco.add(registroCuentaBanco);
+        banco.add(registroCuentaDeposito);
         menu_1.add(banco);
     }
-
+    
     private void abrirCaja() {
         Frm_Listado_Caja frm_caja = new Frm_Listado_Caja();
         frm_caja.pack();
@@ -488,11 +491,19 @@ public class menu extends javax.swing.JFrame {
     }
     
     private void abrirRegistroCuentaBanco() {
-        Frm_Registro_Cuenta_Banco frm_Registro_Cuenta_Banco = new Frm_Registro_Cuenta_Banco();
-        frm_Registro_Cuenta_Banco.pack();
-        desktop.add(frm_Registro_Cuenta_Banco);
-        frm_Registro_Cuenta_Banco.setVisible(true);
-        ViewUtil.centerScreen(desktop, frm_Registro_Cuenta_Banco);
+        Frm_Listado_Banco_Cuenta frm_Listado_Banco_Cuenta = new Frm_Listado_Banco_Cuenta();
+        frm_Listado_Banco_Cuenta.pack();
+        desktop.add(frm_Listado_Banco_Cuenta);
+        frm_Listado_Banco_Cuenta.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm_Listado_Banco_Cuenta);
+    }
+    
+    private void abrirRegistroCuentaBancoDeposito() {
+        Frm_Listado_Banco_Deposito frm_Listado_Banco_Deposito = new Frm_Listado_Banco_Deposito();
+        frm_Listado_Banco_Deposito.pack();
+        desktop.add(frm_Listado_Banco_Deposito);
+        frm_Listado_Banco_Deposito.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm_Listado_Banco_Deposito);
     }
 
     private void abrirUsuario() {

@@ -41,4 +41,9 @@ public class Banco {
         this.estado = estado;
     }
     
+    @Override
+    public String toString() {
+        return descripcion == null ? "" : descripcion;
+    }
+    
 }
