@@ -56,6 +56,9 @@ public class Frm_Registro_Banco extends javax.swing.JInternalFrame {
         jLabel2 = new javax.swing.JLabel();
         cbx_estado = new javax.swing.JComboBox<>();
 
+        setClosable(true);
+        setMaximizable(true);
+
         btn_guardar.setText("Guardar");
         btn_guardar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
