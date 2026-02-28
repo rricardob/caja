@@ -29,8 +29,6 @@ public class menu extends javax.swing.JFrame {
         verificarSesionACtiva();
     }
 
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated
     // Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -142,18 +140,9 @@ public class menu extends javax.swing.JFrame {
         });
     }
 
-    /**
-     * Configura el menú basado en los permisos del usuario logueado
-     */
     private void configurarMenu() {
-
         // Limpiar menú existente
         menu_bar.removeAll();
-
-        // Menú Archivo (siempre visible)
-        menu_1.removeAll();
-        menu_2.removeAll();
-        menu_3.removeAll();
 
         // Verificar si hay sesión activa
         if (!session.sesionActiva()) {
@@ -163,36 +152,128 @@ public class menu extends javax.swing.JFrame {
         }
 
         // Configurar menús basados en permisos
-        configurarMenuTransacciones();
-        configurarMenuReportes();
+        if (session.tienePermiso("transacciones")) {
+            JMenu menuMantenimiento = new JMenu("Mantenimiento");
+            JMenu menuReciboIngreso = new JMenu("Recibo de Ingreso");
+            JMenu menuCajaChica = new JMenu("Caja Chica");
+            JMenu menuReporte = new JMenu("Reporte");
+            JMenu menuSalir = new JMenu("Salir");
+
+            configurarMantenimiento(menuMantenimiento);
+            configurarReciboIngreso(menuReciboIngreso);
+            configurarCajaChica(menuCajaChica);
+            configurarReporte(menuReporte);
+            configurarSalir(menuSalir);
+
+            menu_bar.add(menuMantenimiento);
+            menu_bar.add(menuReciboIngreso);
+            menu_bar.add(menuCajaChica);
+            menu_bar.add(menuReporte);
+            menu_bar.add(menuSalir);
+        }
 
         // Mostrar información del usuario en la barra de título
         setTitle("Sistema de Gestión - Usuario: " + session.getNombreUsuario() + " (" + session.getNombreRol() + ")");
 
         menu_bar.revalidate();
         menu_bar.repaint();
-        // menu_bar.add(menu_1);
     }
 
-    private void configurarMenuTransacciones() {
-        if (session.tienePermiso("transacciones")) {
-            configurarItemsMenuIngresos();
-            configurarItemsMenuEgresos();
-            configurarItemsMenuReposiciones();
-            configurarItemsMenuClientes();
-            configurarItemsMenuCaja();
-            configurarItemsMenuTipoTransacciones();
-            configurarMenuUsuarios();
-            configurarItemsMenuBanco();
-            menu_bar.add(menu_1);
-            menu_bar.add(menu_3);
-        }
+    private void configurarMantenimiento(JMenu menu) {
+        // Reposiciones
+        JMenu subMenuReposiciones = new JMenu("Reposiciones");
+        JMenuItem regReposicion = new JMenuItem("Registro Reposición");
+        regReposicion.addActionListener(e -> abrirReposicionAgregar());
+        JMenuItem listReposicion = new JMenuItem("Listado Reposición");
+        listReposicion.addActionListener(e -> abrirReposicionListado());
+        subMenuReposiciones.add(regReposicion);
+        subMenuReposiciones.add(listReposicion);
+        menu.add(subMenuReposiciones);
+
+        // Clientes
+        JMenu subMenuClientes = new JMenu("Clientes");
+        JMenuItem itemGestionClientes = new JMenuItem("Gestionar Clientes");
+        itemGestionClientes.addActionListener(e -> abrirGestionClientes());
+        JMenuItem tipoIngreso = new JMenuItem("Tipo De Ingreso");
+        tipoIngreso.addActionListener(e -> abrirGestionTipoTransacciones());
+        subMenuClientes.add(itemGestionClientes);
+        subMenuClientes.add(tipoIngreso);
+        menu.add(subMenuClientes);
+
+        // Cheque (Bancos)
+        JMenu subMenuCheque = new JMenu("Cheque");
+        JMenuItem regBanco = new JMenuItem("Registro Banco");
+        regBanco.addActionListener(e -> abrirRegistroBanco());
+        JMenuItem regCuentaBanco = new JMenuItem("Registro Cuenta Banco");
+        regCuentaBanco.addActionListener(e -> abrirRegistroCuentaBanco());
+        JMenuItem regCuentaDepo = new JMenuItem("Registro Cuenta Depósito");
+        regCuentaDepo.addActionListener(e -> abrirRegistroCuentaBancoDeposito());
+        subMenuCheque.add(regBanco);
+        subMenuCheque.add(regCuentaBanco);
+        subMenuCheque.add(regCuentaDepo);
+        menu.add(subMenuCheque);
     }
 
-    private void configurarItemsMenuTipoTransacciones() {
-        javax.swing.JMenuItem gestionarTipos = new javax.swing.JMenuItem("Gestionar Tipo Transacciones");
-        gestionarTipos.addActionListener(e -> abrirGestionTipoTransacciones());
-        menu_1.add(gestionarTipos);
+    private void configurarReciboIngreso(JMenu menu) {
+        JMenuItem regIngresos = new JMenuItem("Registro Ingresos");
+        regIngresos.addActionListener(e -> abrirIngreso());
+        menu.add(regIngresos);
+
+        JMenuItem listIngresos = new JMenuItem("Listado de Ingresos");
+        listIngresos.addActionListener(e -> abrirListadoIngresos());
+        menu.add(listIngresos);
+
+        JMenuItem listCaja = new JMenuItem("Listado de Caja");
+        listCaja.addActionListener(e -> abrirCaja());
+        menu.add(listCaja);
+
+        JMenuItem aperCaja = new JMenuItem("Apertura de Caja");
+        aperCaja.addActionListener(e -> abrirAperturaCaja());
+        menu.add(aperCaja);
+
+        JMenuItem cierCaja = new JMenuItem("Cierre de Caja");
+        cierCaja.addActionListener(e -> abrirCierreCaja());
+        menu.add(cierCaja);
+
+        JMenuItem listUsuarios = new JMenuItem("Listado de Usuarios");
+        listUsuarios.addActionListener(e -> abrirUsuario());
+        menu.add(listUsuarios);
+    }
+
+    private void configurarCajaChica(JMenu menu) {
+        JMenuItem regEgresos = new JMenuItem("Registro de Egresos");
+        regEgresos.addActionListener(e -> abrirEgreso());
+        menu.add(regEgresos);
+
+        JMenuItem listEgresos = new JMenuItem("Listado de Egresos");
+        listEgresos.addActionListener(e -> abrirListadoEgresos());
+        menu.add(listEgresos);
+
+        JMenuItem regCheque = new JMenuItem("Registro Cheque");
+        // regCheque.addActionListener(e -> abrirRegistroCheque()); // Por ahora sin
+        // formulario
+        menu.add(regCheque);
+
+        JMenuItem listCheque = new JMenuItem("Listado Cheque");
+        // listCheque.addActionListener(e -> abrirListadoCheque()); // Por ahora sin
+        // formulario
+        menu.add(listCheque);
+    }
+
+    private void configurarReporte(JMenu menu) {
+        JMenuItem decJurada = new JMenuItem("Declaración Jurada");
+        // decJurada.addActionListener(e -> abrirDeclaracionJurada()); // Por ahora sin
+        // formulario
+        menu.add(decJurada);
+    }
+
+    private void configurarSalir(JMenu menu) {
+        menu.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                System.exit(0);
+            }
+        });
     }
 
     private void abrirGestionTipoTransacciones() {
@@ -215,99 +296,6 @@ public class menu extends javax.swing.JFrame {
         util.ViewUtil.centerScreen(desktop, frm);
     }
 
-    private void configurarMenuUsuarios() {
-        JMenuItem listadoUsuarios = new JMenuItem("Listado de Usuarios");
-
-        listadoUsuarios.addActionListener(e -> abrirUsuario());
-
-        menu_3.add(listadoUsuarios);
-    }
-
-    private void ConfigurarMenuItemSalir(JMenu menu) {
-        JMenuItem itemSalir = new JMenuItem("Salir");
-        itemSalir.addActionListener(e -> System.exit(0));
-        menu.add(itemSalir);
-    }
-
-    private void configurarMenuReportes() {
-        if (session.tienePermiso("reportes")) {
-            menu_2.removeAll();
-
-            JMenuItem itemReporteGeneral = new JMenuItem("Reporte General");
-            ConfigurarMenuItemSalir(menu_2);
-            // itemReporteGeneral.addActionListener(e -> );
-
-            menu_2.add(itemReporteGeneral);
-            menu_bar.add(menu_2);
-        }
-    }
-
-    private void configurarItemsMenuCaja() {
-        JMenuItem listadoCaja = new JMenuItem("Listado de Caja");
-        JMenuItem aperturaCaja = new JMenuItem("Apertura de Caja");
-        JMenuItem cierreCaja = new JMenuItem("Cierre de Caja");
-
-        listadoCaja.addActionListener(e -> abrirCaja());
-        aperturaCaja.addActionListener(e -> abrirAperturaCaja());
-        cierreCaja.addActionListener(e -> abrirCierreCaja());
-
-        menu_3.add(listadoCaja);
-        menu_3.add(aperturaCaja);
-        menu_3.add(cierreCaja);
-
-    }
-
-    private void configurarItemsMenuClientes() {
-        JMenuItem gestionarEstudiantes = new JMenuItem("Gestionar Clientes");
-        gestionarEstudiantes.addActionListener(e -> abrirGestionClientes());
-        menu_1.add(gestionarEstudiantes);
-    }
-
-    private void configurarItemsMenuIngresos() {
-        JMenuItem registroIngresos = new JMenuItem("Registro Ingresos");
-        registroIngresos.addActionListener(e -> abrirIngreso());
-        menu_3.add(registroIngresos);
-
-        JMenuItem listadoIngresos = new JMenuItem("Listado de Ingresos");
-        listadoIngresos.addActionListener(e -> abrirListadoIngresos());
-        menu_3.add(listadoIngresos);
-    }
-
-    private void configurarItemsMenuEgresos() {
-        JMenuItem registroEgresos = new JMenuItem("Registro Egresos");
-        registroEgresos.addActionListener(e -> abrirEgreso());
-        menu_3.add(registroEgresos);
-
-        JMenuItem listadoEgresos = new JMenuItem("Listado de Egresos");
-        listadoEgresos.addActionListener(e -> abrirListadoEgresos());
-        menu_3.add(listadoEgresos);
-    }
-
-    private void configurarItemsMenuReposiciones() {
-        JMenu reposiciones = new JMenu("Reposiciones");
-        JMenuItem registroReposicion = new JMenuItem("Registro Reposicion");
-        registroReposicion.addActionListener(e -> abrirReposicionAgregar());
-        JMenuItem listadoReposicion = new JMenuItem("Listado Reposicion");
-        listadoReposicion.addActionListener(e -> abrirReposicionListado());
-        reposiciones.add(registroReposicion);
-        reposiciones.add(listadoReposicion);
-        menu_1.add(reposiciones);
-    }
-    
-    private void configurarItemsMenuBanco(){
-        JMenu banco = new JMenu("Banco");
-        JMenuItem registroBanco = new JMenuItem("Registro Banco");
-        registroBanco.addActionListener(e -> abrirRegistroBanco());
-        JMenuItem registroCuentaBanco = new JMenuItem("Registro Cuenta Banco");
-        registroCuentaBanco.addActionListener(e -> abrirRegistroCuentaBanco());
-        JMenuItem registroCuentaDeposito = new JMenuItem("Registro Cuenta Deposito");
-        registroCuentaDeposito.addActionListener(e -> abrirRegistroCuentaBancoDeposito());
-        banco.add(registroBanco);
-        banco.add(registroCuentaBanco);
-        banco.add(registroCuentaDeposito);
-        menu_1.add(banco);
-    }
-    
     private void abrirCaja() {
         Frm_Listado_Caja frm_caja = new Frm_Listado_Caja();
         frm_caja.pack();
@@ -368,29 +356,6 @@ public class menu extends javax.swing.JFrame {
             }
         }
         Frm_Listado_Egreso frm = new Frm_Listado_Egreso();
-        frm.pack();
-        desktop.add(frm);
-        frm.setVisible(true);
-        ViewUtil.centerScreen(desktop, frm);
-    }
-
-    private void abrirCliente() {
-        // buscar si ya existe una instancia abierta de Frm_Cliente
-        for (javax.swing.JInternalFrame f : desktop.getAllFrames()) {
-            if (f instanceof Frm_Cliente) {
-                try {
-                    f.setIcon(false);
-                    f.setSelected(true);
-                    f.toFront();
-                } catch (PropertyVetoException ex) {
-                    ex.getCause();
-                }
-                return;
-            }
-        }
-
-        // si no existe, la creamos
-        Frm_Cliente frm = new Frm_Cliente();
         frm.pack();
         desktop.add(frm);
         frm.setVisible(true);
@@ -481,7 +446,7 @@ public class menu extends javax.swing.JFrame {
         frm_Listado_Reposicion.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_Listado_Reposicion);
     }
-    
+
     private void abrirRegistroBanco() {
         Frm_Listado_Banco frm_listado_banco = new Frm_Listado_Banco();
         frm_listado_banco.pack();
@@ -489,7 +454,7 @@ public class menu extends javax.swing.JFrame {
         frm_listado_banco.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_listado_banco);
     }
-    
+
     private void abrirRegistroCuentaBanco() {
         Frm_Listado_Banco_Cuenta frm_Listado_Banco_Cuenta = new Frm_Listado_Banco_Cuenta();
         frm_Listado_Banco_Cuenta.pack();
@@ -497,7 +462,7 @@ public class menu extends javax.swing.JFrame {
         frm_Listado_Banco_Cuenta.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_Listado_Banco_Cuenta);
     }
-    
+
     private void abrirRegistroCuentaBancoDeposito() {
         Frm_Listado_Banco_Deposito frm_Listado_Banco_Deposito = new Frm_Listado_Banco_Deposito();
         frm_Listado_Banco_Deposito.pack();
@@ -513,7 +478,7 @@ public class menu extends javax.swing.JFrame {
         frm_usuarios.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_usuarios);
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JDesktopPane desktop;
     private javax.swing.JMenuItem jMenuItem1;
