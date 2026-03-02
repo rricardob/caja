@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.21.3.final using JasperReports Library version 6.21.3-4a3078d20785ebe464f18037d738d12fc98c13cf  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="rpt_declaracion_jurada" pageWidth="612" pageHeight="792" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="3f6f1853-e872-436b-b9fe-1d77eb18f686">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapterVacio"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="55" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<staticText>
+				<reportElement x="0" y="12" width="120" height="30" uuid="932c4ffb-0e5a-4cba-acec-a3ba84a026e8"/>
+				<textElement>
+					<font isBold="true" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[IESTP SAN AGUSTIN ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="220" y="25" width="140" height="30" uuid="65658013-8b37-4c38-91f1-2d2dd9bcf631">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[DECLARACION JURADA ]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="22" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<staticText>
+				<reportElement x="400" y="2" width="20" height="18" uuid="362830fd-9041-45b7-830f-72e475dc1d37"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[S/ ]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="310" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<staticText>
+				<reportElement x="0" y="3" width="40" height="20" uuid="8169795c-1c4c-489b-8cae-d6b46eccbd2f"/>
+				<text><![CDATA[Yo, ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="23" width="230" height="20" uuid="d8ebb85b-62cd-4dc9-b5cd-c96c430b7463">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<text><![CDATA[Declaro bajo juramento haber gastado la suma de: ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="236" y="43" width="100" height="16" uuid="24fa0e51-8ef7-460e-b4fe-38950c350cf6">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<text><![CDATA[Soles.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="90" width="100" height="20" uuid="691cadd1-b7c9-4ae2-a96e-e28e8d1a8cf1"/>
+				<text><![CDATA[En : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="170" width="210" height="20" uuid="5e7ffd78-4ef8-4022-a9c9-6b31ee531c21"/>
+				<text><![CDATA[Firmo la presente declaración en la Ciudad de: ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="280" y="210" width="30" height="15" uuid="202c94d8-f048-45c7-b87c-7b664d8159c5">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<text><![CDATA[Jaén, ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="340" y="210" width="30" height="15" uuid="68420c87-14b9-49fb-89f0-093aa53b2f15">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<text><![CDATA[de ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="400" y="210" width="30" height="15" uuid="19cb4c7c-76ce-4d21-9bd4-c61349785a4c">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<text><![CDATA[20]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="290" width="40" height="20" uuid="ddad9477-e95a-4c9a-a32d-a4b25093460e">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<text><![CDATA[DNI N°:]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="125" splitType="Stretch"/>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>
