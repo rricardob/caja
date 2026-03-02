@@ -63,3 +63,7 @@ package.json
 scripts/
 .env*
 /bin/
+
+# Schemas and BDD
+cheques_schema.sql
+get_sql.cjs
