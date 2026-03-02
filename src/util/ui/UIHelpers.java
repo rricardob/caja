@@ -66,7 +66,7 @@ public final class UIHelpers {
             }
             String cur = comp.getText();
             if (cur == null || cur.isEmpty()) {
-                setTextBypassFilter(comp, placeholder);      // <- Aquí evitamos el filtro
+                setTextBypassFilter(comp, placeholder); // <- Aquí evitamos el filtro
                 comp.setForeground(placeholderFg);
                 comp.putClientProperty("ui.placeholder.visible", Boolean.TRUE);
             } else {
@@ -79,7 +79,8 @@ public final class UIHelpers {
         Runnable hidePlaceholder = () -> {
             Boolean visible = (Boolean) comp.getClientProperty("ui.placeholder.visible");
             if (visible != null && visible) {
-                // dejar el documento vacío; esto sí debe pasar por el filtro (vacío suele permitirse)
+                // dejar el documento vacío; esto sí debe pasar por el filtro (vacío suele
+                // permitirse)
                 comp.setText("");
                 comp.setForeground(defaultFg);
                 comp.putClientProperty("ui.placeholder.visible", Boolean.FALSE);
@@ -230,7 +231,8 @@ public final class UIHelpers {
         javax.swing.text.Document doc = comp.getDocument();
         if (doc instanceof javax.swing.text.AbstractDocument) {
             javax.swing.text.AbstractDocument ad = (javax.swing.text.AbstractDocument) doc;
-            // IMPORTANTE: usar el tipo javax.swing.text.DocumentFilter (no tu clase utilitaria DocumentFilters)
+            // IMPORTANTE: usar el tipo javax.swing.text.DocumentFilter (no tu clase
+            // utilitaria DocumentFilters)
             javax.swing.text.DocumentFilter currentFilter = ad.getDocumentFilter();
             try {
                 // desactivamos temporalmente para que setText no sea filtrado
@@ -243,5 +245,37 @@ public final class UIHelpers {
         } else {
             comp.setText(text);
         }
+    }
+
+    /**
+     * Obtiene la fecha de un JDateChooser de forma segura, evitando que el
+     * texto del placeholder interfiera con el parseo del componente.
+     */
+    public static java.util.Date getDate(com.toedter.calendar.JDateChooser chooser) {
+        if (chooser == null) {
+            return null;
+        }
+
+        java.awt.Component editorComp = chooser.getDateEditor().getUiComponent();
+        if (editorComp instanceof JTextComponent) {
+            JTextComponent txt = (JTextComponent) editorComp;
+            Object vis = txt.getClientProperty("ui.placeholder.visible");
+
+            // Si el placeholder es visible, el texto actual NO es una fecha válida.
+            // Limpiamos temporalmente para asegurar que getDate() no intente parsear el
+            // placeholder.
+            if (vis instanceof Boolean && (Boolean) vis) {
+                String originalText = txt.getText();
+                try {
+                    setTextBypassFilter(txt, "");
+                    return chooser.getDate();
+                } finally {
+                    // Restauramos el texto (placeholder)
+                    setTextBypassFilter(txt, originalText);
+                }
+            }
+        }
+
+        return chooser.getDate();
     }
 }

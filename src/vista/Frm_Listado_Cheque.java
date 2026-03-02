@@ -124,14 +124,7 @@ public class Frm_Listado_Cheque extends javax.swing.JInternalFrame {
                 UIHelpers.attachHintAndFocusColor(txtNroCheque, "Solo números");
                 UIHelpers.attachPlaceholder(txtNroCheque, " Número de Cheque");
 
-                if (dc_fecha_inicio.getDateEditor().getUiComponent() instanceof JTextComponent) {
-                        UIHelpers.attachPlaceholder((JTextComponent) dc_fecha_inicio.getDateEditor().getUiComponent(),
-                                        " Fecha Inicio");
-                }
-                if (dc_fecha_fin.getDateEditor().getUiComponent() instanceof JTextComponent) {
-                        UIHelpers.attachPlaceholder((JTextComponent) dc_fecha_fin.getDateEditor().getUiComponent(),
-                                        " Fecha Fin");
-                }
+                // No usar placeholders en filtros de fecha
         }
 
         private void configurarPaginacion() {

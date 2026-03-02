@@ -146,12 +146,7 @@ public class Frm_Cheque extends javax.swing.JInternalFrame {
                 UIHelpers.attachPlaceholder(txtNroCheque, " Número de Cheque");
                 UIHelpers.attachPlaceholder(txtTotalCheque, " Total Cheque");
 
-                if (dc_fecha_emision_cheque.getDateEditor().getUiComponent() instanceof JTextComponent) {
-                        JTextComponent editor = (JTextComponent) dc_fecha_emision_cheque.getDateEditor()
-                                        .getUiComponent();
-                        UIHelpers.attachHintAndFocusColor(editor, "Seleccione la fecha de emisión del cheque");
-                        UIHelpers.attachPlaceholder(editor, " Fecha de Emisión");
-                }
+                // No usar placeholder en fecha para evitar problemas de parseo
         }
 
         private void cargarChequesEnTabla() {
@@ -446,7 +441,7 @@ public class Frm_Cheque extends javax.swing.JInternalFrame {
                 try {
                         // Usar UIHelpers.getText para manejar placeholders correctamente
                         String nroCheque = UIHelpers.getText(txtNroCheque).trim();
-                        java.util.Date fechaEmision = dc_fecha_emision_cheque.getDate();
+                        java.util.Date fechaEmision = UIHelpers.getDate(dc_fecha_emision_cheque);
                         String saldoAnteriorStr = UIHelpers.getText(txtSaldoAnterior).trim();
                         String totalChequeStr = UIHelpers.getText(txtTotalCheque).trim();
 

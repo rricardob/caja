@@ -45,11 +45,7 @@ public class Frm_Modificar_Cheque extends javax.swing.JInternalFrame {
         UIHelpers.attachPlaceholder(txtNroCheque, " Número de Cheque");
         UIHelpers.attachPlaceholder(txtTotalCheque, " Total Cheque");
 
-        if (dcDechaEmisionCheque.getDateEditor().getUiComponent() instanceof JTextComponent) {
-            JTextComponent editor = (JTextComponent) dcDechaEmisionCheque.getDateEditor().getUiComponent();
-            UIHelpers.attachHintAndFocusColor(editor, "Seleccione la fecha de emisión");
-            UIHelpers.attachPlaceholder(editor, " Fecha de Emisión");
-        }
+        // No usar placeholder en fecha
     }
 
     private void cargarDatosCheque() {
@@ -65,9 +61,7 @@ public class Frm_Modificar_Cheque extends javax.swing.JInternalFrame {
         UIHelpers.updatePlaceholderState(txtNroCheque);
         UIHelpers.updatePlaceholderState(txtTotalCheque);
 
-        if (dcDechaEmisionCheque.getDateEditor().getUiComponent() instanceof JTextComponent) {
-            UIHelpers.updatePlaceholderState((JTextComponent) dcDechaEmisionCheque.getDateEditor().getUiComponent());
-        }
+        // No actualizar placeholder en fecha
     }
 
     @SuppressWarnings("unchecked")
@@ -179,7 +173,7 @@ public class Frm_Modificar_Cheque extends javax.swing.JInternalFrame {
     private void btnAceptarActionPerformed(java.awt.event.ActionEvent evt) {
         try {
             String nroCheque = UIHelpers.getText(txtNroCheque).trim();
-            java.util.Date fechaEmision = dcDechaEmisionCheque.getDate();
+            java.util.Date fechaEmision = UIHelpers.getDate(dcDechaEmisionCheque);
             String saldoAnteriorStr = UIHelpers.getText(txtSaldoAnterior).trim();
             String totalChequeStr = UIHelpers.getText(txtTotalCheque).trim();
 
