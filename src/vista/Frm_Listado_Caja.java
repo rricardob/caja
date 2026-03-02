@@ -17,14 +17,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import modelo.SesionCaja;
 import modelo.SessionManager;
-import net.sf.jasperreports.engine.JREmptyDataSource;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.data.JRTableModelDataSource;
-import net.sf.jasperreports.view.JasperViewer;
 import util.Constantes;
 import util.DateUtil;
 import vista.components.PaginationPanel;
@@ -121,7 +113,6 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
         dc_fecha_inicio = new com.toedter.calendar.JDateChooser();
         jLabel1 = new javax.swing.JLabel();
         dc_fecha_fin = new com.toedter.calendar.JDateChooser();
-        btn_reporte = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tb_sesiones_caja = new javax.swing.JTable();
@@ -143,13 +134,6 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
 
         jLabel1.setText("Fecha Fin:");
 
-        btn_reporte.setText("Reporte");
-        btn_reporte.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btn_reporteActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout panel_filtroLayout = new javax.swing.GroupLayout(panel_filtro);
         panel_filtro.setLayout(panel_filtroLayout);
         panel_filtroLayout.setHorizontalGroup(
@@ -164,19 +148,15 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(dc_fecha_fin, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(btn_buscar)
-                .addGap(34, 34, 34)
-                .addComponent(btn_reporte, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(10, 10, 10))
+                .addComponent(btn_buscar, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         panel_filtroLayout.setVerticalGroup(
             panel_filtroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panel_filtroLayout.createSequentialGroup()
                 .addGap(10, 10, 10)
                 .addGroup(panel_filtroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(panel_filtroLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(btn_buscar)
-                        .addComponent(btn_reporte))
+                    .addComponent(btn_buscar)
                     .addComponent(dc_fecha_inicio, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lbl_fecha)
                     .addComponent(jLabel1)
@@ -218,11 +198,9 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(10, 10, 10)
-                .addComponent(jScrollPane1)
-                .addGap(10, 10, 10))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addGap(10, 10, 10)
-                .addComponent(pnlPaginacion, javax.swing.GroupLayout.PREFERRED_SIZE, 778, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addComponent(pnlPaginacion, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 778, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(10, 10, 10))
         );
         jPanel1Layout.setVerticalGroup(
@@ -271,61 +249,6 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
 
     }//GEN-LAST:event_btn_buscarActionPerformed
 
-    private void btn_reporteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_reporteActionPerformed
-
-        reporte2();
-        /*try {
-            List<SesionCaja> sesionCajas = this.cajaController.obtenerHistorial(this.session.getIdUsuario(), fechaInicio, fechaFin);
-
-            InputStream is = PrintService.class.getClassLoader().getResourceAsStream("rpt_ingreso_egreso.jrxml");
-            JasperReport jasperReport = JasperCompileManager.compileReport(is);
-            Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put("DATE",  fechaFin);
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters,
-                    new JRBeanCollectionDataSource(sesionCajas));
-            File outDir = new File("D:/myJasperReports");
-            outDir.mkdirs();
-            JasperExportManager.exportReportToPdfFile(jasperPrint, "/home/ricardo/Descargas/employeeReport.pdf");
-            System.out.println("PDF report done!");
-
-        } catch (JRException ex) {
-            System.out.println("Error:\n" + ex.getLocalizedMessage());
-        }*/
-
-    }//GEN-LAST:event_btn_reporteActionPerformed
-
-    public void reporte() {
-        try {
-
-            // Obtener el JRXML como un InputStream desde el classpath
-            InputStream jrxmlStream = getClass().getResourceAsStream("/recursos/rpt_ingresos_egresos.jrxml");
-
-            if (jrxmlStream == null) {
-                System.err.println("Error: El archivo del reporte no se encontró en el classpath.");
-                return;
-            }
-
-            // Compilar el reporte desde el InputStream
-            JasperReport report = JasperCompileManager.compileReport(jrxmlStream);
-
-            JasperCompileManager.compileReportToFile("src/recursos/rpt_ingresos_egresos.jrxml",
-                    "src/recursos/rpt_ingresos_egresos.jasper");
-
-            List<SesionCaja> sesionCajas = this.cajaController.obtenerHistorial(this.session.getIdUsuario(), fechaInicio, fechaFin);
-
-            JRTableModelDataSource dataSource = new JRTableModelDataSource(new SesionCajaTableModel(sesionCajas, usuarioDAO));
-
-            JasperPrint print = JasperFillManager.fillReport(report, null, dataSource);
-
-            JasperViewer view1 = new JasperViewer(print, false);
-            view1.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-            view1.setVisible(true);
-
-        } catch (JRException ex) {
-            System.out.println(ex.getMessage());
-        }
-    }
-
     private void loadData(Date fechaInicio, Date fechaFin) {
         try {
             List<SesionCaja> sesionCajas = this.cajaController.obtenerHistorial(this.session.getIdUsuario(), fechaInicio, fechaFin);
@@ -370,50 +293,8 @@ public class Frm_Listado_Caja extends javax.swing.JInternalFrame {
         tb_sesiones_caja.setAutoCreateRowSorter(true);
     }
 
-    public void reporte2() {
-        try {
-            // Tu código para obtener datos y parámetros (sesionCajas, param)
-            // ...
-            List<SesionCaja> sesionCajas = this.cajaController.obtenerHistorial(this.session.getIdUsuario(), fechaInicio, fechaFin);
-            if (sesionCajas == null || sesionCajas.size() == 0) {
-                JOptionPane.showMessageDialog(this, "No Hay registros para generar el PDF");
-            }
-
-            Map<String, Object> parameters = new HashMap<String, Object>();
-            String[] fechas = DateUtil.obtenerFechaFormateadaTituloReporte(fechaInicio, fechaFin);
-            parameters.put("FECHA_INICIAL", fechas[0]);
-            parameters.put("FECHA_FINAL", fechas[1]);
-            parameters.put("RUTA_RECURSOS", Constantes.RUTA_RECURSOS);
-
-            // Obtener el archivo JRXML como un InputStream
-            InputStream jrxmlStream = this.getClass().getResourceAsStream("/recursos/rpt_ingresos_egresos.jrxml");
-
-            if (jrxmlStream == null) {
-                System.err.println("Error: El archivo del reporte JRXML no se encontró. Verifica la ruta.");
-                return;
-            }
-
-            // Compilar el JRXML en un objeto JasperReport en memoria
-            JasperReport jasperReport = JasperCompileManager.compileReport(jrxmlStream);
-
-            //
-            JREmptyDataSource dataSource = new JREmptyDataSource();
-
-            // Llenar el reporte
-            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
-
-            // Mostrar el reporte
-            JasperViewer.viewReport(jasperPrint, false);
-
-        } catch (JRException ex) {
-            System.err.println("Error al generar el reporte: " + ex.getLocalizedMessage());
-            ex.printStackTrace();
-        }
-    }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_buscar;
-    private javax.swing.JButton btn_reporte;
     private com.toedter.calendar.JDateChooser dc_fecha_fin;
     private com.toedter.calendar.JDateChooser dc_fecha_inicio;
     private javax.swing.JLabel jLabel1;

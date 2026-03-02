@@ -250,13 +250,11 @@ public class menu extends javax.swing.JFrame {
         menu.add(listEgresos);
 
         JMenuItem regCheque = new JMenuItem("Registro Cheque");
-        // regCheque.addActionListener(e -> abrirRegistroCheque()); // Por ahora sin
-        // formulario
+        regCheque.addActionListener(e -> abrirRegistroCheque());
         menu.add(regCheque);
 
         JMenuItem listCheque = new JMenuItem("Listado Cheque");
-        // listCheque.addActionListener(e -> abrirListadoCheque()); // Por ahora sin
-        // formulario
+        listCheque.addActionListener(e -> abrirListadoCheque());
         menu.add(listCheque);
     }
 
@@ -469,6 +467,22 @@ public class menu extends javax.swing.JFrame {
         desktop.add(frm_Listado_Banco_Deposito);
         frm_Listado_Banco_Deposito.setVisible(true);
         ViewUtil.centerScreen(desktop, frm_Listado_Banco_Deposito);
+    }
+
+    private void abrirRegistroCheque() {
+        Frm_Cheque frm = new Frm_Cheque();
+        frm.pack();
+        desktop.add(frm);
+        frm.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm);
+    }
+
+    private void abrirListadoCheque() {
+        Frm_Listado_Cheque frm = new Frm_Listado_Cheque();
+        frm.pack();
+        desktop.add(frm);
+        frm.setVisible(true);
+        ViewUtil.centerScreen(desktop, frm);
     }
 
     private void abrirUsuario() {
